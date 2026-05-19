@@ -1,0 +1,429 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{问题一
+静态方案与功耗模型}\label{ux95eeux9898ux4e00-ux9759ux6001ux65b9ux6848ux4e0eux529fux8017ux6a21ux578b}
+
+\subsection{1.
+静态方案说明}\label{1-ux9759ux6001ux65b9ux6848ux8bf4ux660e}
+
+静态方案假设一天 24 小时使用同一组参数：
+
+\[G_t = G, \quad R_t = R, \quad t = 0,1,\dots,23\]
+
+其中：
+
+\begin{itemize}
+\item
+  G：每块 GPU 负载（\%）
+\item
+  R：数据传输速率（Mbps）
+\end{itemize}
+
+问题一中不考虑动态调度，只考虑误差率的满足。
+
+变量范围：
+
+\[60 \le G \le 100, \quad 800 \le R \le 1200\]
+
+总处理量约束（全天）：
+
+\[\sum_{t=0}^{23} q_t \ge 1 \quad \Rightarrow \quad \frac{G}{80} \cdot \frac{R}{1000} \ge 1\]
+
+误差约束：
+
+\[E = 30 - 0.2 (G - 60) + 0.05 (800 - R) \le 5 \quad \Rightarrow \quad 4G + R \ge 1540\]
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2.
+功耗模型说明}\label{2-ux529fux8017ux6a21ux578bux8bf4ux660e}
+
+一天总能耗：
+
+\[\text{总能耗} = 24 \cdot \Big[ P_\text{gpu}(G) + P_\text{trans}(R) + P_\text{cool}(G) \Big]\]
+
+\subsubsection{2.1 GPU 功耗}\label{21-gpu-ux529fux8017}
+
+每块 GPU 功耗按负载线性计算：
+
+\[P_\text{gpu}(G) = 8 \cdot \text{单块 GPU 功率} / 1000\]
+
+说明：计算 8 块 GPU 的总功耗（单位 kW），随负载增加线性增长。
+
+\subsubsection{2.2
+数据传输功耗}\label{22-ux6570ux636eux4f20ux8f93ux529fux8017}
+
+传输速率功耗线性增加：
+
+\[P_\text{trans}(R) = 0.25 + 0.0004 \cdot (R - 800)\]
+
+说明：基础功耗 0.25 kW，每增加 1 Mbps 数据传输速率，功耗增加 0.0004 kW。
+
+\subsubsection{2.3 冷却功耗}\label{23-ux51b7ux5374ux529fux8017}
+
+冷却功耗随 GPU 负载线性增加：
+
+\[P_\text{cool}(G) = 1.2 + 0.12 \cdot (G - 60)\]
+
+说明：基础功耗 1.2 kW，每增加 1\% GPU 负载，冷却功耗增加 0.12 kW。
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3.
+数据分析误差约束}\label{3-ux6570ux636eux5206ux6790ux8befux5deeux7ea6ux675f}
+
+采用 8 块 GPU 误差累加模型：
+
+\[E = 30 - 0.025 \cdot 8 \cdot (G - 60) + 0.05 \cdot (800 - R)\]
+
+化简为：
+
+\[E = 30 - 0.2 (G - 60) + 0.05 (800 - R)\]
+
+约束条件：
+
+\[E \le 5 \quad \Rightarrow \quad 4G + R \ge 1540\]
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4.
+总能耗目标函数}\label{4-ux603bux80fdux8017ux76eeux6807ux51fdux6570}
+
+一天总能耗：
+
+\[\text{总能耗} = 24 \cdot \Big[ P_\text{gpu}(G) + P_\text{trans}(R) + P_\text{cool}(G) \Big]\]
+
+功耗分解：
+
+\begin{aligned}
+P_\text{gpu}(G) &= 8 \cdot \text{单块 GPU 功率} / 1000 \\
+P_\text{trans}(R) &= 0.25 + 0.0004 \cdot (R - 800) \\
+P_\text{cool}(G) &= 1.2 + 0.12 \cdot (G - 60)
+\end{aligned}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. 最优解}\label{5-ux6700ux4f18ux89e3}
+
+\[G = 85\%, \quad R = 1200 \text{ Mbps}\]
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+指标 & 数值 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+GPU 负载 & 85\% \\
+数据传输速率 & 1200 Mbps \\
+GPU 集群功率 & 2.00 kW \\
+数据传输功率 & 0.41 kW \\
+冷却功率 & 4.20 kW \\
+系统总功率 & 6.61 kW \\
+一天总能耗 & 158.64 kWh \\
+总处理量 & 1.275 \\
+数据分析误差 & 5\% \\
+\end{longtable}
+
+\subsection{最优解分析与解释}\label{ux6700ux4f18ux89e3ux5206ux6790ux4e0eux89e3ux91ca}
+
+最优解 G=85\textbackslash\%, R=1200 Mbps 的核心原因是：
+
+\begin{itemize}
+\item
+  提高传输速率是``低功耗、高降误差''的手段
+\item
+  提高 GPU 负载是``高功耗、也能降误差''的手段
+\end{itemize}
+
+误差模型为：
+
+\[E = 30 - 0.2(G - 60) + 0.05(800 - R)\]
+
+等价约束：
+
+\[E \le 5 \quad \Longleftrightarrow \quad 4G + R \ge 1540\]
+
+当 R=1200 时：
+
+\[4G + 1200 \ge 1540 \quad \Rightarrow \quad G \ge 85\]
+
+\begin{itemize}
+\item
+  如果 GPU 低于 85\%，误差超过限制
+\item
+  如果 GPU 高于 85\%，误差更低，但功耗增加，没有必要
+\end{itemize}
+
+传输速率取最大值的原因：
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+传输速率 R & 传输功率 P\_\textbackslash text\{trans\} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+800 Mbps & 0.25 kW \\
+1200 Mbps & 0.41 kW \\
+\end{longtable}
+
+\begin{itemize}
+\item
+  仅增加 0.16 kW，却能将误差率下降约 20 个百分点
+\item
+  相比之下，提高 GPU 负载会显著增加 GPU 功耗和冷却功耗
+\end{itemize}
+
+任务量约束在最优点处不是最紧约束：
+
+\[\text{日任务完成量} = \frac{85}{80} \cdot \frac{1200}{1000} = 1.275 \ge 1\]
+
+因此，真正决定最优点的是误差约束，而不是任务量约束。
+
+\subsubsection{综合解释}\label{ux7efcux5408ux89e3ux91ca}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  为满足 5\textbackslash\% 误差约束，必须提高计算能力或传输速率
+\item
+  提高传输速率功耗代价小，降误差效果显著，因此优先将 R 提高到上限 1200
+  Mbps
+\item
+  在 R\$已达到上限后，只需将 GPU 负载提高到 85\%，误差刚好达到 5\%
+\item
+  继续提高 GPU 会增加功耗，但不会带来额外收益
+\item
+  因此最小能耗解为 G=85\textbackslash\%, R=1200 Mbps
+\end{enumerate}
+
+\begin{quote}
+注：该结果完全依赖题目给定参数，尤其是``传输速率提升对误差改善大、对功耗影响小''的设定。最优解贴近传输速率上限，是模型参数共同作用的数学结果，并非程序错误。
+\end{quote}
+
+\subsection{图1：误差率三维高度图}\label{ux56fe1ux8befux5deeux7387ux4e09ux7ef4ux9ad8ux5ea6ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260519113140082.png}}
+
+\textbf{坐标轴：}
+
+\begin{itemize}
+\item
+  X轴：GPU负载 G（\%）
+\item
+  Y轴：数据传输速率 R（Mbps）
+\item
+  Z轴：误差率 E（\%）
+\end{itemize}
+
+\textbf{绘制内容：}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  误差率三维曲面
+\item
+  半透明的 E = 5\textbackslash\% 约束平面
+\item
+  最低误差角点 (G=100, R=1200, E=2)\$
+\item
+  最优点 (G=85, R=1200, E=5)\$
+\item
+  标注``最优点''和``最低误差2\%''
+\end{enumerate}
+
+\textbf{预期解释：}
+
+\begin{itemize}
+\item
+  GPU负载越高，误差率越低
+\item
+  传输速率越高，误差率越低
+\item
+  最优点位于 E=5\textbackslash\% 的约束边界
+\item
+  最低误差点说明理论最低误差在 GPU 和传输速率同时取上限位置
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{图
+2：总功耗三维高度图}\label{ux56fe-2ux603bux529fux8017ux4e09ux7ef4ux9ad8ux5ea6ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260519113441117.png}}
+
+\textbf{坐标轴：}
+
+\begin{itemize}
+\item
+  X轴：GPU负载 G（\%）
+\item
+  Y轴：数据传输速率 R（Mbps）
+\item
+  Z轴：系统总功率 P（kW）
+\end{itemize}
+
+\textbf{系统总功率公式：}
+
+\[P(G,R) = P_\text{gpu}(G) + P_\text{trans}(R) + P_\text{cool}(G)\]
+
+\textbf{绘制内容：}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  总功率三维曲面
+\item
+  最优点 (G=85, R=1200, P=6.61)
+\item
+  标注``最优点''
+\end{enumerate}
+
+\textbf{预期解释：}
+
+\begin{itemize}
+\item
+  GPU负载增加同时提高 GPU 功耗和冷却功耗，总功率沿 G 上升更快
+\item
+  传输速率方向功率几乎不上升
+\item
+  模型倾向提高传输速率来降低误差，而不是增加 GPU 负载
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{ 图
+3：二维可行域与总功率等高线图}{ 图 3：二维可行域与总功率等高线图}}\label{ux56fe-3ux4e8cux7ef4ux53efux884cux57dfux4e0eux603bux529fux7387ux7b49ux9ad8ux7ebfux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260519113425577.png}}
+
+\textbf{坐标轴：}
+
+\begin{itemize}
+\item
+  X轴：GPU负载 G（\%）
+\item
+  Y轴：数据传输速率 R（Mbps）
+\end{itemize}
+
+\textbf{绘制内容：}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  任务量边界：
+\end{enumerate}
+
+\[\frac{G}{80} \cdot \frac{R}{1000} = 1\]
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  误差边界：
+\end{enumerate}
+
+\[4G + R = 1540\]
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  不可行区域浅灰色遮罩
+\item
+  可行区域用总功率色块填充
+\item
+  最优点 (85, 1200)\$
+\item
+  图例左下角，功率颜色说明右侧中部
+\end{enumerate}
+
+\textbf{预期解释：}
+
+\begin{itemize}
+\item
+  最优点位于传输速率上限与误差边界交汇
+\item
+  任务量约束不是最紧约束，误差约束决定最优点位置
+\item
+  可行域内颜色展示总功率相对高低，低功率边界显示最优点
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\end{document}

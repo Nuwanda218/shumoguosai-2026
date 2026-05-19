@@ -1,6 +1,6 @@
 # AI 算力节能调度建模项目
 
-本项目用于 2026 校选数学建模题“人工智能算力的电力消耗”。当前目标是把题目中的 GPU 功耗、数据传输功耗、冷却功耗、任务处理量、误差约束、电池储能和分时电价拆成可复用模块，后续再分别实现问题一到问题四的求解代码和论文图表。
+本项目用于 2026 校选数学建模题“人工智能算力的电力消耗”。当前已经完成基础模型模块和问题一求解、可视化初版；后续将在同一结构下继续实现问题二到问题四。
 
 ## 项目结构
 
@@ -24,18 +24,35 @@
 
   tests/                 # 单元测试
     test_model_modules.py
+    test_question1.py
+    test_visualization_question1.py
+
+  question/              # 问题一到问题四求解脚本和设计文档
+    question1.py         # 问题一：最小能耗静态求解
+    问题一设计.md
+
+  visualization/         # 论文图表生成模块
+    style.py             # 中文字体、论文配色、图像尺寸
+    question1_plots.py   # 问题一图像生成
+    问题一图像说明.md
+
+  outputs/               # 求解结果、图片、表格
+    README.md
+    question1/
+      README.md
+      error_surface_3d.png
+      power_surface_3d.png
+      feasible_region_2d.png
+      power_breakdown_curve.png
+
+  问题一结果/            # 问题一论文内容导出
+    问题一.md
+    问题一.tex
+    问题一.pdf
 
   huo/                   # 队友早期草稿代码，保留作参考
     问题一.py
     问题二.py
-```
-
-计划后续新增：
-
-```text
-question/                # 问题一到问题四求解脚本
-visualization/           # 论文图表和结果表生成模块
-outputs/                 # 求解结果、图片、表格
 ```
 
 ## 建模口径
@@ -77,6 +94,73 @@ E_bar = sum(q_t * E_t) / sum(q_t) <= 5
 ```
 
 说明：如果严格按 PDF 字面理解为“整体系统中 GPU 负载每增加 1% 只让误差减少 0.025%”，则最大配置 `G=100, R=1200` 时误差仍为 9%，无法满足 5% 约束。因此项目采用 8-GPU 叠加解释。
+
+## 问题一当前结果
+
+问题一目标为最小化全天总能耗。由于问题一不引入分时电价、电池和冷却惯性，24 小时采用同一组静态调度变量：
+
+```text
+G_t = G
+R_t = R
+```
+
+当前求解结果：
+
+```text
+GPU负载 G = 85%
+数据传输速率 R = 1200 Mbps
+系统功率 P = 6.61 kW
+日总能耗 = 158.64 kWh
+日任务完成量 = 1.275
+误差率 E = 5.0%
+```
+
+结果解释：
+
+```text
+误差约束 E <= 5 等价于 4G + R >= 1540。
+当 R = 1200 Mbps 时，只需 G >= 85% 即可满足误差约束。
+提高传输速率的功率代价较小，但降误差效果明显；
+提高 GPU 负载会同时增加 GPU 功率和冷却功率。
+因此模型优先把 R 提高到上限，再选择刚好满足误差约束的最低 GPU 负载。
+```
+
+运行问题一求解：
+
+```bash
+python -m question.question1
+```
+
+也可以直接运行脚本：
+
+```bash
+python question/question1.py
+```
+
+生成问题一图像：
+
+```bash
+python -m visualization.question1_plots
+```
+
+也可以直接运行脚本：
+
+```bash
+python visualization/question1_plots.py
+```
+
+当前问题一输出图像：
+
+- `outputs/question1/error_surface_3d.png`：误差率三维曲面和 5% 约束平面。
+- `outputs/question1/power_surface_3d.png`：系统总功率三维曲面。
+- `outputs/question1/feasible_region_2d.png`：任务量、误差约束和可行域功率分布。
+- `outputs/question1/power_breakdown_curve.png`：功耗分解和传输速率敏感性。
+
+当前问题一论文结果文件：
+
+- `问题一结果/问题一.md`：问题一文字说明、模型推导、结果解释和图像分析。
+- `问题一结果/问题一.tex`：由 Markdown 转换得到的 LaTeX 文件。
+- `问题一结果/问题一.pdf`：问题一阶段性论文结果 PDF。
 
 ## models 模块职责
 
@@ -177,6 +261,8 @@ python -m unittest discover -s tests -v
 - 分时电价数量。
 - 电池 SOC 递推。
 - 日能耗和日电费计算。
+- 问题一最优解、可行性和直接运行脚本。
+- 问题一可视化网格、误差公式、输出图片和统一配色。
 
 ## 后续开发规则
 
