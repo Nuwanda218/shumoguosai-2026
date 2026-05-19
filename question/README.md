@@ -2,7 +2,7 @@
 
 `question/` 用来保存问题一到问题四的求解脚本和对应设计文档。
 
-当前阶段只用 Markdown 讨论方案，不写求解代码。等问题一的模型、输入输出、可视化内容和结果格式达成共识后，再创建 Python 文件。
+当前已完成问题一求解与可视化，问题二已完成求解代码初版。问题二图像与结果文件导出后续再讨论。
 
 ## 计划结构
 
@@ -10,14 +10,15 @@
 question/
   README.md
   问题一设计.md
+  问题二设计.md
+  question1.py      # 问题一求解代码
+  question2.py      # 问题二求解代码
 ```
 
 后续达成共识后再新增：
 
 ```text
 question/
-  question1.py      # 问题一求解代码
-  question2.py      # 问题二求解代码
   question3.py      # 问题三求解代码
   question4.py      # 问题四求解代码
 ```

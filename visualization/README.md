@@ -2,21 +2,18 @@
 
 `visualization/` 用来保存论文图表和结果表生成模块。
 
-当前阶段只讨论设计，不写绘图代码。等问题一输出结果结构确定后，再创建 Python 可视化模块。
+当前已完成问题一、问题二的可视化模块初版，后续继续补充问题三、问题四图像。
 
 ## 计划结构
 
 ```text
 visualization/
   README.md
-```
-
-后续达成共识后再新增：
-
-```text
-visualization/
-  plots.py          # 通用绘图函数
-  tables.py         # 可选：结果表导出函数
+  style.py
+  question1_plots.py
+  question2_plots.py
+  问题一图像说明.md
+  问题二图像说明.md
 ```
 
 ## 设计原则
@@ -73,6 +70,36 @@ outputs/question1/question1_result.csv
 ```
 
 Markdown 表适合直接复制到论文，CSV 表适合后续数据处理。
+
+## 问题二图表计划
+
+问题二图像说明见：
+
+```text
+visualization/问题二图像说明.md
+```
+
+绘图代码：
+
+```text
+visualization/question2_plots.py
+```
+
+输出目录：
+
+```text
+outputs/question2/
+```
+
+当前输出五张图：
+
+```text
+tariff_schedule.png              # 分时电价与调度曲线
+power_cost_schedule.png          # 系统功率与小时电费
+work_error_contribution.png      # 处理量与误差贡献
+q1_q2_comparison.png             # 问题一与问题二对比
+rate_max_reason.png              # 传输速率取上限原因
+```
 
 
 配色：
