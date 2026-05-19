@@ -1,4 +1,6 @@
 import tempfile
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -12,7 +14,7 @@ from visualization.question1_plots import (
     generate_question1_grid,
     generate_rate_sensitivity_curves,
 )
-from visualization.style import CHINESE_FONT_CANDIDATES, QUESTION1_COLORS
+from visualization.style import CHINESE_FONT_CANDIDATES, PAPER_PALETTE, QUESTION1_COLORS
 
 
 class Question1VisualizationTests(unittest.TestCase):
@@ -21,6 +23,9 @@ class Question1VisualizationTests(unittest.TestCase):
         self.assertIn("optimal", QUESTION1_COLORS)
         self.assertIn("error_boundary", QUESTION1_COLORS)
         self.assertIn("work_boundary", QUESTION1_COLORS)
+        self.assertEqual(PAPER_PALETTE[0], "#8074C8")
+        self.assertEqual(PAPER_PALETTE[-1], "#F7FBC9")
+        self.assertEqual(len(PAPER_PALETTE), 12)
 
     def test_generate_question1_grid_has_expected_shape(self):
         grid = generate_question1_grid(num_loads=21, num_rates=17)
@@ -77,6 +82,24 @@ class Question1VisualizationTests(unittest.TestCase):
             for path in paths:
                 self.assertTrue(path.exists(), msg=str(path))
                 self.assertGreater(path.stat().st_size, 10_000, msg=str(path))
+
+    def test_question1_plots_script_can_run_directly(self):
+        project_root = Path(__file__).resolve().parents[1]
+        script_path = project_root / "visualization" / "question1_plots.py"
+
+        completed = subprocess.run(
+            [sys.executable, str(script_path)],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            msg=completed.stdout + completed.stderr,
+        )
 
 
 if __name__ == "__main__":

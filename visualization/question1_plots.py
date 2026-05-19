@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import matplotlib
 
@@ -15,16 +16,29 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  # required by Matplotlib 3D projection
+
+# 允许直接运行本文件：
+#     python visualization/question1_plots.py
+# 直接运行子目录脚本时，Python 默认只把 visualization/ 放入 sys.path，
+# 不会自动识别项目根目录，因此需要手动补入根目录才能导入 models、question。
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from models.components import cooling_steady_power, gpu_cluster_power, transmission_power
 from models.objectives import system_power
 from models.parameters import DEFAULT_PARAMS, ModelParameters
 from models.task import analysis_error, hourly_work
 from question.question1 import Question1Result, solve_question1
-from visualization.style import DEFAULT_STYLE, QUESTION1_COLORS, apply_chinese_style
+from visualization.style import (
+    DEFAULT_STYLE,
+    ERROR_CMAP,
+    POWER_CMAP,
+    POWER_SURFACE_CMAP,
+    QUESTION1_COLORS,
+    apply_chinese_style,
+)
 
 
 def ensure_output_dir(output_dir: str | Path) -> Path:
@@ -117,74 +131,30 @@ def plot_error_surface_3d(
         grid["loads"],
         grid["rates"],
         grid["errors"],
-        cmap="YlOrRd",
+        cmap=ERROR_CMAP,
         alpha=0.9,
         linewidth=0,
         antialiased=True,
     )
 
-    # 明确画出 E=5% 平面。只用轻量平面 + 网格线，避免遮挡完整误差曲面。
+    # 明确画出 E=5% 平面。平面不加网格线，避免画面过密。
     error_plane = np.full_like(grid["errors"], params.error_limit_percent)
     ax.plot_surface(
         grid["loads"],
         grid["rates"],
         error_plane,
-        color="#4D96FF",
-        alpha=0.12,
+        color=QUESTION1_COLORS["error_plane"],
+        alpha=0.32,
         linewidth=0,
     )
-    ax.plot_wireframe(
-        grid["loads"],
-        grid["rates"],
-        error_plane,
-        color="#1D5FD1",
-        linewidth=0.55,
-        rstride=8,
-        cstride=8,
-        alpha=0.95,
-    )
-    ax.contour(
-        grid["loads"],
-        grid["rates"],
-        grid["errors"],
-        levels=[params.error_limit_percent],
-        colors=[QUESTION1_COLORS["error_boundary"]],
-        linewidths=3.0,
-        zdir="z",
-        offset=params.error_limit_percent,
-    )
-
-    # 增加若干条固定 GPU 负载的三维切片线，直接展示：
-    # 在同一 GPU 负载下，传输速率越高，误差率越低。
-    rate_values = grid["rate_values"]
-    slice_styles = [
-        (70.0, "#1F77B4"),
-        (85.0, QUESTION1_COLORS["optimal"]),
-        (100.0, "#2CA02C"),
-    ]
-    for load_value, color in slice_styles:
-        load_line = np.full_like(rate_values, load_value)
-        error_line = analysis_error(load_line, rate_values, params=params)
-        ax.plot(
-            load_line,
-            rate_values,
-            error_line,
-            color=color,
-            linewidth=3.0 if load_value == result.gpu_load else 2.2,
-            label=f"G={load_value:.0f}%切片",
-        )
-
-    # 标注误差最高和最低的两个角点，让完整范围更明确。
-    ax.scatter([60], [800], [30], color="#8B0000", s=45, depthshade=False)
-    ax.text(60, 800, 31.0, "最高误差30%", color="#8B0000")
-    ax.scatter([100], [1200], [2], color="#006400", s=45, depthshade=False)
-    ax.text(100, 1200, 3.2, "最低误差2%", color="#006400")
+    ax.scatter([100], [1200], [2], color=QUESTION1_COLORS["minimum"], s=55, depthshade=False)
+    ax.text(100, 1200, 3.2, "最低误差2%", color=QUESTION1_COLORS["minimum"])
     ax.scatter(
         [result.gpu_load],
         [result.transmission_rate],
         [result.weighted_error],
         color=QUESTION1_COLORS["optimal"],
-        s=65,
+        s=75,
         label="最优点",
         depthshade=False,
     )
@@ -208,15 +178,6 @@ def plot_error_surface_3d(
     ax.set_box_aspect((1.05, 1.2, 0.82))
     ax.view_init(elev=26, azim=-48)
     fig.colorbar(surface, ax=ax, shrink=0.62, pad=0.1, label="误差率（%）")
-    ax.legend(
-        handles=[
-            Line2D([0], [0], marker="o", color="w", markerfacecolor=QUESTION1_COLORS["optimal"], markersize=8, label="最优点"),
-            Patch(facecolor="#4D96FF", alpha=0.28, edgecolor="#1D5FD1", label="误差5%平面"),
-            Line2D([0], [0], color=QUESTION1_COLORS["error_boundary"], linewidth=3, label="误差5%边界线"),
-            Line2D([0], [0], color=QUESTION1_COLORS["optimal"], linewidth=3, label="G=85%切片：R增大误差下降"),
-        ],
-        loc="upper left",
-    )
     return _save_and_close(fig, output_dir / "error_surface_3d.png")
 
 
@@ -238,26 +199,39 @@ def plot_power_surface_3d(
         grid["loads"],
         grid["rates"],
         grid["powers"],
-        cmap="viridis",
-        alpha=0.9,
+        cmap=POWER_SURFACE_CMAP,
+        alpha=0.98,
         linewidth=0,
         antialiased=True,
+    )
+    marker_lift = 0.18
+    ax.plot(
+        [result.gpu_load, result.gpu_load],
+        [result.transmission_rate, result.transmission_rate],
+        [result.system_power, result.system_power + marker_lift],
+        color=QUESTION1_COLORS["optimal"],
+        linewidth=1.8,
+        zorder=20,
     )
     ax.scatter(
         [result.gpu_load],
         [result.transmission_rate],
-        [result.system_power],
+        [result.system_power + marker_lift],
         color=QUESTION1_COLORS["optimal"],
-        s=65,
+        edgecolor="white",
+        linewidth=1.2,
+        s=90,
         label="最优点",
         depthshade=False,
+        zorder=30,
     )
     ax.text(
         result.gpu_load,
         result.transmission_rate,
-        result.system_power + 0.25,
+        result.system_power + 0.45,
         "最优点",
         color=QUESTION1_COLORS["optimal"],
+        zorder=31,
     )
     ax.set_title("总功率随GPU负载和传输速率变化")
     ax.set_xlabel("GPU负载 G（%）", labelpad=8)
@@ -304,7 +278,7 @@ def plot_feasible_region_2d(
         grid["rates"],
         feasible_power,
         levels=12,
-        cmap="YlGnBu",
+        cmap=POWER_CMAP,
         alpha=0.92,
     )
     ax.contour(
@@ -316,7 +290,8 @@ def plot_feasible_region_2d(
         linewidths=0.8,
         alpha=0.45,
     )
-    fig.colorbar(power_fill, ax=ax, label="可行域内系统总功率（kW）")
+    colorbar = fig.colorbar(power_fill, ax=ax, label="可行域内系统总功率（kW）")
+    colorbar.ax.yaxis.set_label_position("right")
 
     load_values = grid["load_values"]
     work_boundary = 80000.0 / load_values
@@ -357,24 +332,24 @@ def plot_feasible_region_2d(
     ax.set_ylim(params.rate_min_mbps, params.rate_max_mbps)
     ax.text(
         61.2,
-        815,
+        882,
         "灰色：不可行区域",
         color="#555555",
         fontsize=10,
         bbox={"facecolor": "white", "alpha": 0.72, "edgecolor": "none"},
     )
     ax.text(
-        61.2,
-        1180,
+        87,
+        1100,
         "可行域颜色：系统总功率",
-        color="#16425B",
+        color=QUESTION1_COLORS["text_blue"],
         fontsize=10,
         bbox={"facecolor": "white", "alpha": 0.72, "edgecolor": "none"},
     )
     ax.set_title("问题一可行域与总功率等高线")
     ax.set_xlabel("GPU负载 G（%）")
     ax.set_ylabel("数据传输速率 R（Mbps）")
-    ax.legend(loc="lower right")
+    ax.legend(loc="lower left")
     ax.grid(alpha=0.25)
     return _save_and_close(fig, output_dir / "feasible_region_2d.png")
 

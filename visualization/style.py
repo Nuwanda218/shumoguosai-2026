@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 
 CHINESE_FONT_CANDIDATES = [
@@ -20,17 +21,51 @@ CHINESE_FONT_CANDIDATES = [
 ]
 
 
+PAPER_PALETTE = [
+    "#8074C8",
+    "#7895C1",
+    "#A8CBDF",
+    "#D6EFF4",
+    "#F2FAFC",
+    "#992224",
+    "#B54764",
+    "#E3625D",
+    "#EF8B67",
+    "#F0C284",
+    "#F5EBAE",
+    "#F7FBC9",
+]
+
+
+POWER_CMAP = LinearSegmentedColormap.from_list(
+    "question1_power",
+    ["#F2FAFC", "#D6EFF4", "#A8CBDF", "#7895C1", "#8074C8"],
+)
+POWER_SURFACE_CMAP = LinearSegmentedColormap.from_list(
+    "question1_power_surface",
+    ["#D6EFF4", "#A8CBDF", "#7895C1", "#8074C8", "#992224"],
+)
+ERROR_CMAP = LinearSegmentedColormap.from_list(
+    "question1_error",
+    ["#F7FBC9", "#F5EBAE", "#F0C284", "#EF8B67", "#E3625D", "#B54764", "#992224"],
+)
+
+
 QUESTION1_COLORS = {
-    "optimal": "#D62728",
-    "error_boundary": "#FF7F0E",
-    "work_boundary": "#1F77B4",
-    "feasible": "#B7E4C7",
+    "optimal": "#992224",
+    "minimum": "#8074C8",
+    "error_plane": "#F5EBAE",
+    "error_boundary": "#E3625D",
+    "work_boundary": "#7895C1",
+    "feasible": "#D6EFF4",
     "infeasible": "#D9D9D9",
-    "gpu": "#4C78A8",
-    "cooling": "#F58518",
-    "transmission": "#54A24B",
-    "total": "#222222",
-    "error": "#D62728",
+    "gpu": "#7895C1",
+    "cooling": "#EF8B67",
+    "transmission": "#A8CBDF",
+    "total": "#992224",
+    "error": "#B54764",
+    "text_dark": "#992224",
+    "text_blue": "#8074C8",
 }
 
 
