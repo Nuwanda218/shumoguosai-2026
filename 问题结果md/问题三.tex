@@ -1,0 +1,517 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{问题三
+储能系统与冷却惯性下的动态调度模型}\label{ux95eeux9898ux4e09-ux50a8ux80fdux7cfbux7edfux4e0eux51b7ux5374ux60efux6027ux4e0bux7684ux52a8ux6001ux8c03ux5ea6ux6a21ux578b}
+
+\subsection{1.
+问题三建模思路}\label{1-ux95eeux9898ux4e09ux5efaux6a21ux601dux8def}
+
+问题三在问题二分时电价动态调度模型的基础上，进一步加入电池储能系统和冷却系统惯性约束。
+
+问题二中，系统每小时的用电量直接由 GPU
+负载、数据传输速率和稳态冷却功率决定。问题三中，实验室可以通过电池在低价时段充电、在高价时段放电，从而改变实际从电网购电的功率。同时，冷却系统不能瞬时跟随
+GPU 负载变化，实际冷却功率需要满足相邻小时变化限制。
+
+因此，问题三的优化目标仍然是最小化一天总电费，但系统约束从``单纯调节计算负载''扩展为``计算负载、电池充放电、冷却功率''三者协同调度。
+
+\subsection{2.
+与问题二模型的衔接}\label{2-ux4e0eux95eeux9898ux4e8cux6a21ux578bux7684ux8854ux63a5}
+
+问题三继承问题二已经确定的三个核心口径：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  处理量模型不变；
+\item
+  误差约束继续采用处理量加权平均误差；
+\item
+  电价目标继续采用分时电价下的日电费最小化。
+\end{enumerate}
+
+第 \$t\$ 小时处理量为：
+
+\[q_t=\frac{G_t}{80}\cdot\frac{R_t}{1000}\cdot\frac{1}{24}\]
+
+全天任务量约束为：
+
+\[\sum_{t=1}^{24}q_t\ge 1\]
+
+误差模型为：
+
+\[E_t=30-0.2(G_t-60)+0.05(800-R_t)\]
+
+加权平均误差约束为：
+
+\[\frac{\sum_{t=1}^{24}q_tE_t}{\sum_{t=1}^{24}q_t}\le 5\]
+
+该约束与问题二保持一致，避免逐小时瞬时误差约束把动态调度压缩成近似固定方案。
+
+\subsection{3. 决策变量}\label{3-ux51b3ux7b56ux53d8ux91cf}
+
+问题三采用完整 24 小时调度变量。每小时的主要变量为：
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+符号 & 含义 & 单位 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\$G\_t\$ & GPU 负载 & \% \\
+\$R\_t\$ & 数据传输速率 & Mbps \\
+\$C\_t\$ & 实际冷却功率 & kW \\
+\$P\_t\^{}\{ch\}\$ & 电池充电功率 & kW \\
+\$P\_t\^{}\{dis\}\$ & 电池放电功率 & kW \\
+\$S\_t\$ & 第 \$t\$ 小时开始时电池电量 & kWh \\
+\end{longtable}
+
+GPU 负载和数据传输速率仍满足：
+
+\[60\le G_t\le 100\]
+
+\[800\le R_t\le 1200\]
+
+\subsection{4.
+电池储能模型}\label{4-ux7535ux6c60ux50a8ux80fdux6a21ux578b}
+
+题目给出的电池参数为：
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+参数 & 数值 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+额定容量 & 40 kWh \\
+最大充电功率 & 12 kW \\
+最大放电功率 & 12 kW \\
+充放电效率 & 90\% \\
+初始 SOC & 40\% \\
+最低 SOC & 20\% \\
+\end{longtable}
+
+因此电池电量边界为：
+
+\[8\le S_t\le 40\]
+
+充放电功率边界为：
+
+\[0\le P_t^{ch}\le 12\]
+
+\[0\le P_t^{dis}\le 12\]
+
+电池状态递推为：
+
+\[S_{t+1}=S_t+0.9P_t^{ch}-\frac{P_t^{dis}}{0.9}\]
+
+电池不能同时充放电，数学上可表示为：
+
+\[P_t^{ch}P_t^{dis}=0\]
+
+\subsection{5.
+循环保留电量设置}\label{5-ux5faaux73afux4fddux7559ux7535ux91cfux8bbeux7f6e}
+
+题目规定终止 SOC 无硬性要求，但不得低于 20\%。如果只要求：
+
+\[S_{25}\ge 8\]
+
+模型会倾向于直接消耗初始电量，使第一天电费偏低。该结果不适合表示长期重复运行成本。
+
+为了研究长期使用下的稳定日调度，本文引入循环保留电量：
+
+\[S_{\text{res}}\]
+
+并要求：
+
+\[S_1=S_{25}=S_{\text{res}}\]
+
+本文对以下候选值进行梯度对比：
+
+\[S_{\text{res}}\in\{8,12,16,20,24,32\}\]
+
+这样可以比较不同终止保留电量对日电费和电池调度能力的影响，再选择合适的长期循环额度。
+
+\subsection{6.
+冷却惯性模型}\label{6-ux51b7ux5374ux60efux6027ux6a21ux578b}
+
+题目给出：当 GPU 集群总负载为 480\% 时，冷却功率为 1.2 kW；GPU
+集群总负载每提升 10\%，冷却功率增加 0.15 kW。
+
+由于 8 块 GPU 同步调节，冷却稳态需求功率为：
+
+\[C_t^*=1.2+0.15\cdot\frac{8(G_t-60)}{10}\]
+
+即：
+
+\[C_t^*=1.2+0.12(G_t-60)\]
+
+问题三引入实际冷却功率 \$C\_t\$，并要求：
+
+\[C_t\ge C_t^*\]
+
+同时，相邻小时冷却功率变化不超过 0.2 kW：
+
+\[|C_{t+1}-C_t|\le 0.2\]
+
+并采用日周期边界：
+
+\[|C_1-C_{24}|\le 0.2\]
+
+该约束体现了冷却系统惯性，使冷却功率不能像问题二那样瞬时等于稳态需求。
+
+\subsection{7.
+电网购电功率与目标函数}\label{7-ux7535ux7f51ux8d2dux7535ux529fux7387ux4e0eux76eeux6807ux51fdux6570}
+
+考虑电池后，实验室从电网实际购电功率为：
+
+\[P_t^{grid}=P_t^{gpu}+P_t^{trans}+C_t+P_t^{ch}-P_t^{dis}\]
+
+其中充电会增加购电功率，放电会减少购电功率。
+
+同时要求：
+
+\[P_t^{grid}\ge 0\]
+
+目标函数为最小化一天总电费：
+
+\[\min F=\sum_{t=1}^{24}c_tP_t^{grid}\]
+
+其中 \$c\_t\$ 为问题二中使用的分时电价。
+
+\subsection{8.
+循环额度对比结果}\label{8-ux5faaux73afux989dux5ea6ux5bf9ux6bd4ux7ed3ux679c}
+
+对 \$S\_\{\textbackslash text\{res\}\}=8,12,16,20,24,32\$ kWh
+分别求解，得到如下结果：
+
+\begin{longtable}[]{@{}lllllllll@{}}
+\toprule\noalign{}
+循环保留电量 & 日电费 & 电网购电量 & 总处理量 & 加权误差 & 总充电量 &
+总放电量 & 峰时段放电量 & 最大冷却变化 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+8 kWh & 159.2601 元 & 164.3997 kWh & 1.2699 & 4.9999\% & 35.5556 kWh &
+28.8000 kWh & 24.7425 kWh & 0.2000 kW \\
+12 kWh & 158.6374 元 & 163.9493 kWh & 1.2690 & 5.0000\% & 35.5556 kWh &
+28.8000 kWh & 24.8595 kWh & 0.2000 kW \\
+16 kWh & 158.6374 元 & 163.9493 kWh & 1.2690 & 5.0000\% & 35.5556 kWh &
+28.8000 kWh & 24.8595 kWh & 0.2000 kW \\
+20 kWh & 158.6374 元 & 163.9493 kWh & 1.2690 & 5.0000\% & 35.5556 kWh &
+28.8000 kWh & 24.8627 kWh & 0.2000 kW \\
+24 kWh & 158.6374 元 & 163.9493 kWh & 1.2690 & 5.0000\% & 35.5556 kWh &
+28.8000 kWh & 24.8627 kWh & 0.2000 kW \\
+32 kWh & 159.0961 元 & 163.4426 kWh & 1.2690 & 5.0000\% & 32.8889 kWh &
+26.6400 kWh & 24.8595 kWh & 0.2000 kW \\
+\end{longtable}
+
+结果显示，\$S\emph{\{\textbackslash text\{res\}\}=12\$ 到 \$24\$ kWh
+的日电费基本相同，均为 158.6374
+元；\$S}\{\textbackslash text\{res\}\}=8\$ kWh
+虽然保留电量最低，但日电费反而略高；\$S\_\{\textbackslash text\{res\}\}=32\$
+kWh 由于可调度容量减少，日电费也略有升高。
+
+因此，在费用几乎相同的候选方案中，本文选择保留电量更高、运行冗余更大的：
+
+\[S_{\text{res}}=24\text{ kWh}\]
+
+作为第三问推荐方案。
+
+\subsection{9.
+推荐方案运行结果}\label{9-ux63a8ux8350ux65b9ux6848ux8fd0ux884cux7ed3ux679c}
+
+推荐方案为：
+
+\[S_1=S_{25}=24\text{ kWh}\]
+
+主要指标如下：
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+指标 & 数值 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+日电费 & 158.6374 元 \\
+系统总能耗 & 157.1937 kWh \\
+电网购电量 & 163.9493 kWh \\
+总处理量 & 1.2690 \\
+加权平均误差 & 5.0000\% \\
+总充电量 & 35.5556 kWh \\
+总放电量 & 28.8000 kWh \\
+谷时段充电量 & 35.5556 kWh \\
+峰时段放电量 & 24.8627 kWh \\
+最大冷却功率变化 & 0.2000 kW \\
+最大同时充放电量 & 0.000000 kW \\
+\end{longtable}
+
+24 小时调度结果如下：
+
+\begin{longtable}[]{@{}llllllllll@{}}
+\toprule\noalign{}
+小时 & 电价 & GPU负载 & 传输速率 & 冷却功率 & 充电 & 放电 & SOC始 &
+电网功率 & 小时电费 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & 0.8 & 91.267\% & 1200.0 & 4.9521 & 11.9998 & 0.0000 & 24.0000 &
+19.4621 & 15.5697 \\
+2 & 0.8 & 92.934\% & 1200.0 & 5.1521 & 5.7775 & 0.0000 & 34.7998 &
+13.4665 & 10.7732 \\
+3 & 0.8 & 94.601\% & 1200.0 & 5.3521 & 0.0005 & 0.0000 & 39.9995 &
+7.9162 & 6.3329 \\
+4 & 0.8 & 92.934\% & 1200.0 & 5.1521 & 0.0000 & 0.0000 & 40.0000 &
+7.6890 & 6.1512 \\
+5 & 0.8 & 91.267\% & 1200.0 & 4.9521 & 0.0000 & 0.0000 & 40.0000 &
+7.4623 & 5.9699 \\
+6 & 0.8 & 89.601\% & 1200.0 & 4.7521 & 0.0000 & 0.0000 & 40.0000 &
+7.2357 & 5.7885 \\
+7 & 1.2 & 87.934\% & 1200.0 & 4.5521 & 0.0000 & 0.3282 & 40.0000 &
+6.6808 & 8.0170 \\
+8 & 1.2 & 86.267\% & 1200.0 & 4.3521 & 0.0000 & 0.3281 & 39.6354 &
+6.4542 & 7.7451 \\
+9 & 1.2 & 84.601\% & 1200.0 & 4.1521 & 0.0000 & 0.3281 & 39.2708 &
+6.2275 & 7.4730 \\
+10 & 2.0 & 82.934\% & 1200.0 & 3.9521 & 0.0000 & 6.3290 & 38.9062 &
+0.0000 & 0.0000 \\
+11 & 2.0 & 81.267\% & 1200.0 & 3.7521 & 0.0000 & 6.1023 & 31.8740 &
+0.0000 & 0.0000 \\
+12 & 1.2 & 79.601\% & 1200.0 & 3.5521 & 0.0000 & 0.3282 & 25.0936 &
+5.5443 & 6.6531 \\
+13 & 1.2 & 77.934\% & 1200.0 & 3.3521 & 0.0000 & 0.3281 & 24.7290 &
+5.3044 & 6.3653 \\
+14 & 1.2 & 76.267\% & 1200.0 & 3.1521 & 0.0000 & 0.3281 & 24.3645 &
+5.0644 & 6.0773 \\
+15 & 1.2 & 74.601\% & 1200.0 & 2.9521 & 0.0000 & 0.3282 & 23.9999 &
+4.8243 & 5.7891 \\
+16 & 1.2 & 76.267\% & 1200.0 & 3.1521 & 0.0000 & 0.3281 & 23.6352 &
+5.0644 & 6.0773 \\
+17 & 1.2 & 77.934\% & 1200.0 & 3.3521 & 0.0000 & 0.3281 & 23.2707 &
+5.3044 & 6.3653 \\
+18 & 1.2 & 79.601\% & 1200.0 & 3.5521 & 0.0000 & 0.3280 & 22.9062 &
+5.5444 & 6.6533 \\
+19 & 2.0 & 81.267\% & 1200.0 & 3.7521 & 0.0000 & 6.1023 & 22.5417 &
+0.0000 & 0.0000 \\
+20 & 2.0 & 82.934\% & 1200.0 & 3.9521 & 0.0000 & 6.3290 & 15.7613 &
+0.0000 & 0.0000 \\
+21 & 1.2 & 84.601\% & 1200.0 & 4.1521 & 0.0000 & 0.3281 & 8.7291 &
+6.2276 & 7.4731 \\
+22 & 1.2 & 86.267\% & 1200.0 & 4.3521 & 0.0000 & 0.3281 & 8.3646 &
+6.4542 & 7.7451 \\
+23 & 0.8 & 87.934\% & 1200.0 & 4.5521 & 8.8889 & 0.0000 & 8.0000 &
+15.8979 & 12.7184 \\
+24 & 0.8 & 89.601\% & 1200.0 & 4.7521 & 8.8888 & 0.0000 & 16.0000 &
+16.1245 & 12.8996 \\
+\end{longtable}
+
+终止 SOC 为：
+
+\[S_{25}=24\text{ kWh}\]
+
+\subsection{10. 结果分析}\label{10-ux7ed3ux679cux5206ux6790}
+
+\subsubsection{10.1
+电池调度作用}\label{101-ux7535ux6c60ux8c03ux5ea6ux4f5cux7528}
+
+推荐方案中，电池主要在谷时段充电，在峰时段放电。峰时段 10、11、19、20
+小时的电网购电功率被压到接近
+0，这说明电池有效替代了高电价时段的电网购电。
+
+由于充放电效率为 90\%，电池总充电量为 35.5556 kWh，总放电量为 28.8000
+kWh，两者并不相等。这是因为充放电过程中存在效率损耗，满足：
+
+\[28.8000 \approx 35.5556\times0.9^2\]
+
+因此，电池并没有减少系统本身需要的能量，而是通过改变购电时间降低电费。
+
+\subsubsection{10.2
+冷却惯性作用}\label{102-ux51b7ux5374ux60efux6027ux4f5cux7528}
+
+推荐方案中最大冷却功率变化为 0.2000
+kW，刚好达到题目限制。这说明冷却惯性约束是紧约束。
+
+GPU
+负载从谷时段到峰时段不是突然跳变，而是呈现较平滑的变化趋势。实际冷却功率也随时间逐步升降，不能瞬时等于稳态冷却需求。这是第三问区别于第二问的重要特征。
+
+\subsubsection{10.3
+与问题二的对比}\label{103-ux4e0eux95eeux9898ux4e8cux7684ux5bf9ux6bd4}
+
+问题二最小日电费为：
+
+\[162.3362\text{ 元}\]
+
+问题三推荐方案日电费为：
+
+\[158.6374\text{ 元}\]
+
+因此，问题三相对于问题二进一步节约：
+
+\[162.3362-158.6374=3.6988\text{ 元}\]
+
+节约率为：
+
+\[\frac{3.6988}{162.3362}\times100\%\approx2.28\%\]
+
+虽然节约幅度不如问题二相对问题一明显，但问题三是在加入冷却惯性这一更严格约束后，仍然通过电池调度进一步降低了电费。
+
+\subsection{11.
+图像结果说明}\label{11-ux56feux50cfux7ed3ux679cux8bf4ux660e}
+
+以下只给出图像放置位置和文字说明，图片后续由可视化模块生成后再插入。
+
+\subsubsection{图1：循环额度梯度对比图}\label{ux56fe1ux5faaux73afux989dux5ea6ux68afux5ea6ux5bf9ux6bd4ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260520211335984.png}}
+
+该图用于比较不同 \$S\_\{\textbackslash text\{res\}\}\$
+下的日电费、总放电量和峰时段放电量。
+
+预期解释：当循环保留电量过低或过高时，日电费都会略有增加；12-24 kWh
+区间日电费基本相同，因此可选择 24 kWh 作为兼顾经济性和运行冗余的方案。
+
+\subsubsection{图2：24 小时 GPU
+负载与传输速率调度图}\label{ux56fe224-ux5c0fux65f6-gpu-ux8d1fux8f7dux4e0eux4f20ux8f93ux901fux7387ux8c03ux5ea6ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260520210900049.png}}
+
+该图展示 GPU 负载、数据传输速率和电价时段之间的关系。
+
+预期解释：GPU
+负载受冷却惯性约束影响，呈现比问题二更平滑的变化；数据传输速率仍保持
+1200 Mbps，继续承担降低误差的作用。
+
+\subsubsection{图3：电池充放电功率与 SOC
+曲线}\label{ux56fe3ux7535ux6c60ux5145ux653eux7535ux529fux7387ux4e0e-soc-ux66f2ux7ebf}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260520210502208.png}}
+
+该图展示电池在谷时段充电、峰时段放电，并最终回到
+\$S\_\{\textbackslash text\{res\}\}=24\$ kWh。
+
+预期解释：电池调度实现了低价购电、高价替代购电的作用。SOC
+曲线体现了长期循环运行约束，即每天开始和结束保留相同电量。
+
+\subsubsection{图4：冷却稳态需求与实际冷却功率对比图（这个图可以放也可以不放，因为在限制下，预期和实际冷却效率是一样的）}\label{ux56fe4ux51b7ux5374ux7a33ux6001ux9700ux6c42ux4e0eux5b9eux9645ux51b7ux5374ux529fux7387ux5bf9ux6bd4ux56feux8fd9ux4e2aux56feux53efux4ee5ux653eux4e5fux53efux4ee5ux4e0dux653eux56e0ux4e3aux5728ux9650ux5236ux4e0bux9884ux671fux548cux5b9eux9645ux51b7ux5374ux6548ux7387ux662fux4e00ux6837ux7684uxff09}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260520210557963.png}}
+
+该图比较 \$C\_t\^{}*\$ 和 \$C\_t\$。
+
+预期解释：实际冷却功率不能瞬时跟随 GPU 负载变化，而是在 0.2 kW/h
+的限制下逐步升降。该图用于说明冷却惯性约束对调度结果的影响。
+
+\subsubsection{图5：系统功率、电网购电功率与小时电费图}\label{ux56fe5ux7cfbux7edfux529fux7387ux7535ux7f51ux8d2dux7535ux529fux7387ux4e0eux5c0fux65f6ux7535ux8d39ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260520211418966.png}}
+
+该图展示系统负荷功率、电网购电功率和小时电费。
+
+预期解释：电池并不改变系统负荷功率，但能显著改变电网购电功率。峰时段电网购电功率接近
+0，说明高价电被电池放电替代。
+
+\subsubsection{图6：问题二与问题三指标对比图}\label{ux56fe6ux95eeux9898ux4e8cux4e0eux95eeux9898ux4e09ux6307ux6807ux5bf9ux6bd4ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260520211358672.png}}
+
+该图比较问题二和问题三的日电费、总能耗、总处理量和加权误差。
+
+预期解释：问题三在考虑电池储能和冷却惯性后，仍然比问题二进一步降低日电费，说明储能系统具有削峰填谷价值。
+
+\subsection{12. 第三问结论}\label{12-ux7b2cux4e09ux95eeux7ed3ux8bba}
+
+问题三在问题二分时电价调度基础上加入电池储能和冷却惯性后，得到的推荐长期循环方案为：
+
+\[S_{\text{res}}=24\text{ kWh}\]
+
+该方案日电费为 158.6374 元，总处理量为 1.2690，加权平均误差为
+5.0000\%，满足任务量、误差、电池 SOC、冷却惯性和电网购电功率非负等约束。
+
+从调度机制看，电池主要在谷时段充电、峰时段放电，使峰时段电网购电功率接近
+0；冷却系统由于相邻小时变化受限，使 GPU
+负载和实际冷却功率呈现更平滑的变化。
+
+与问题二相比，问题三日电费进一步降低 3.6988
+元，说明储能系统在分时电价下能够继续降低运行成本；但冷却惯性约束也限制了负载快速切换，使问题三调度比问题二更接近实际运行状态。
+
+\end{document}
