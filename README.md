@@ -1,314 +1,254 @@
 # AI 算力节能调度建模项目
 
-本项目用于 2026 校选数学建模题“人工智能算力的电力消耗”。当前已经完成基础模型模块、问题一求解与可视化、问题二求解初版；后续将在同一结构下继续实现问题二图像和问题三、问题四。
+本项目用于 2026 校选数学建模题“人工智能算力的电力消耗”。目前四个问题的建模、求解代码、结果文档和可视化初版均已完成；图像可继续按论文排版需要微调。
 
-## 项目结构
+## 当前进度
+
+| 模块 | 状态 | 主要文件 |
+| ---- | ---- | -------- |
+| 基础模型模块 | 已完成 | `models/` |
+| 问题一：最小能耗 | 已完成 | `question/question1.py`，`问题结果md/问题一.md` |
+| 问题二：分时电价最小电费 | 已完成 | `question/question2.py`，`问题结果md/问题二.md` |
+| 问题三：电池储能与冷却惯性 | 已完成 | `question/question3.py`，`问题结果md/问题三.md` |
+| 问题四：负载与传输速率变化率约束 | 初版完成 | `question/question4.py`，`问题结果md/问题四.md` |
+| 四问可视化 | 初版完成 | `visualization/`，`outputs/` |
+
+## 目录说明
 
 ```text
 建模/
-  README.md              # 项目总说明
-  2026校选.md            # 题面整理
-  模型说明.md            # 数学模型说明文档
-  模块设计.md            # 初始模块设计草稿
-  2026国赛校选题目.pdf   # 原始题目 PDF
+  README.md                 # 项目总说明，给队友快速定位文件
+  2026校选.md               # 题面整理
+  2026国赛校选题目.pdf      # 原始题目 PDF
+  模型说明.md               # 总体模型说明
 
-  models/                # 正式可复用模型模块
-    parameters.py        # 统一参数、电价表
-    components.py        # GPU、传输、冷却功率模型
-    task.py              # 处理量、误差、加权平均误差
-    battery.py           # 电池 SOC、电网购电功率
-    constraints.py       # 边界、周期变化率、违约量检查
-    objectives.py        # 系统功率、日能耗、日电费
-    _numeric.py          # 内部数值辅助函数
-    readme.md            # models 模块说明
+  models/                   # 可复用模型模块，不写具体问题求解
+    parameters.py           # 参数、电价、边界
+    components.py           # GPU、传输、冷却功率
+    task.py                 # 处理量、误差、加权平均误差
+    battery.py              # 电池 SOC、电网购电功率
+    constraints.py          # 边界、周期变化率、违约量检查
+    objectives.py           # 系统功率、日能耗、日电费
+    readme.md               # models 模块说明
 
-  tests/                 # 单元测试
-    test_model_modules.py
-    test_question1.py
-    test_question2.py
-    test_visualization_question1.py
-
-  question/              # 问题一到问题四求解脚本和设计文档
-    question1.py         # 问题一：最小能耗静态求解
-    question2.py         # 问题二：分时电价最小电费调度
+  question/                 # 四个问题的设计说明与求解代码
+    question1.py
+    question2.py
+    question3.py
+    question4.py
     问题一设计.md
     问题二设计.md
+    问题三设计.md
+    问题四设计.md
 
-  visualization/         # 论文图表生成模块
-    style.py             # 中文字体、论文配色、图像尺寸
-    question1_plots.py   # 问题一图像生成
+  visualization/            # 可视化代码和图像说明
+    style.py                # 中文字体、统一配色、图像参数
+    question1_plots.py
+    question2_plots.py
+    question3_plots.py
+    question4_plots.py
     问题一图像说明.md
+    问题二图像说明.md
+    问题三图像说明.md
+    问题四图像说明.md
 
-  outputs/               # 求解结果、图片、表格
-    README.md
+  outputs/                  # 已生成的图像和输出说明
     question1/
-      README.md
-      error_surface_3d.png
-      power_surface_3d.png
-      feasible_region_2d.png
-      power_breakdown_curve.png
+    question2/
+    question3/
+    question4/
 
-  问题结果md/            # 论文内容、阶段性结果和资料整理
+  问题结果md/               # 论文文字结果，可直接取用和改写
     问题一.md
-    问题一.tex
-    问题一.pdf
     问题二.md
+    问题三.md
+    问题四.md
 
-  huo/                   # 队友早期草稿代码，保留作参考
-    问题一.py
-    问题二.py
+  tests/                    # 单元测试
+
+  huo/                      # 队友早期草稿代码，仅作参考
 ```
 
-## 建模口径
+## 统一建模口径
 
-### 处理量模型
-
-题目给出基准：每块 GPU 负载 80%、传输速率 1000 Mbps，连续运行 24 小时刚好完成一天处理量。
-
-因此第 `t` 小时处理量定义为：
+处理量采用乘积正比：
 
 ```text
 q_t = (G_t / 80) * (R_t / 1000) / 24
-```
-
-全天处理量约束：
-
-```text
 sum(q_t) >= 1
 ```
 
-### 误差模型
-
-采用 8 块 GPU 共同降低误差的建模口径：
+误差采用 8 块 GPU 共同降低误差的解释：
 
 ```text
 E_t = 30 - 0.025 * 8 * (G_t - 60) + 0.05 * (800 - R_t)
 ```
 
-即：
-
-```text
-E_t = 30 - 0.2 * (G_t - 60) + 0.05 * (800 - R_t)
-```
-
-动态调度中使用全天处理量加权平均误差：
-
-```text
-E_bar = sum(q_t * E_t) / sum(q_t) <= 5
-```
-
-说明：如果严格按 PDF 字面理解为“整体系统中 GPU 负载每增加 1% 只让误差减少 0.025%”，则最大配置 `G=100, R=1200` 时误差仍为 9%，无法满足 5% 约束。因此项目采用 8-GPU 叠加解释。
-
-## 问题一当前结果
-
-问题一目标为最小化全天总能耗。由于问题一不引入分时电价、电池和冷却惯性，24 小时采用同一组静态调度变量：
-
-```text
-G_t = G
-R_t = R
-```
-
-当前求解结果：
-
-```text
-GPU负载 G = 85%
-数据传输速率 R = 1200 Mbps
-系统功率 P = 6.61 kW
-日总能耗 = 158.64 kWh
-日任务完成量 = 1.275
-误差率 E = 5.0%
-```
-
-结果解释：
-
-```text
-误差约束 E <= 5 等价于 4G + R >= 1540。
-当 R = 1200 Mbps 时，只需 G >= 85% 即可满足误差约束。
-提高传输速率的功率代价较小，但降误差效果明显；
-提高 GPU 负载会同时增加 GPU 功率和冷却功率。
-因此模型优先把 R 提高到上限，再选择刚好满足误差约束的最低 GPU 负载。
-```
-
-运行问题一求解：
-
-```bash
-python -m question.question1
-```
-
-也可以直接运行脚本：
-
-```bash
-python question/question1.py
-```
-
-生成问题一图像：
-
-```bash
-python -m visualization.question1_plots
-```
-
-也可以直接运行脚本：
-
-```bash
-python visualization/question1_plots.py
-```
-
-当前问题一输出图像：
-
-- `outputs/question1/error_surface_3d.png`：误差率三维曲面和 5% 约束平面。
-- `outputs/question1/power_surface_3d.png`：系统总功率三维曲面。
-- `outputs/question1/feasible_region_2d.png`：任务量、误差约束和可行域功率分布。
-- `outputs/question1/power_breakdown_curve.png`：功耗分解和传输速率敏感性。
-
-当前问题一论文结果文件：
-
-- `问题结果md/问题一.md`：问题一文字说明、模型推导、结果解释和图像分析。
-- `问题结果md/问题一.tex`：由 Markdown 转换得到的 LaTeX 文件。
-- `问题结果md/问题一.pdf`：问题一阶段性论文结果 PDF。
-
-## 问题二当前结果
-
-问题二目标为最小化分时电价下的一天总电费。当前采用峰、平、谷三类时段统一调度，再展开成 24 小时结果。
-
-误差约束采用全天处理量加权平均误差：
+动态调度问题采用全天处理量加权平均误差：
 
 ```text
 sum(q_t * E_t) / sum(q_t) <= 5
 ```
 
-而不是逐小时瞬时误差 `E_t <= 5`。这样可以避免第二问退化为全天固定 `G=85, R=1200`。
+说明：如果把题面“单块 GPU 每增加 1% 误差降低 0.025%”理解为不叠加，则最大配置下误差仍无法降到 5%，模型不可行。因此正式模型采用 8-GPU 叠加解释。
 
-当前求解结果：
+## 四问结果概览
+
+### 问题一
+
+目标：最小化系统总能耗。
+
+结果：
+
+```text
+GPU负载 G = 85%
+数据传输速率 R = 1200 Mbps
+系统功率 = 6.61 kW
+日总能耗 = 158.64 kWh
+总处理量 = 1.275
+误差率 = 5.0000%
+```
+
+结论：传输速率功耗代价较小但能显著降低误差，因此最优策略先把传输速率拉到上限，再选择刚好满足误差约束的最低 GPU 负载。
+
+### 问题二
+
+目标：加入峰、平、谷分时电价后，最小化日电费。
+
+结果：
 
 ```text
 谷时段：G = 100.000%，R = 1200 Mbps
 平时段：G = 78.642%，R = 1200 Mbps
 峰时段：G = 60.000%，R = 1200 Mbps
-最小日电费 = 162.336 元
-问题一固定方案日电费 = 190.368 元
+最小日电费 = 162.3362 元
 总处理量 = 1.2398
 加权平均误差 = 5.0000%
 ```
 
-运行问题二求解：
+结论：低电价时段提高负载完成更多任务，高电价时段降低负载；传输速率仍保持上限，因为它的功耗增量较小，并且有利于降低误差。
 
-```bash
-python -m question.question2
-```
+### 问题三
 
-也可以直接运行脚本：
+目标：在问题二基础上加入电池储能和冷却惯性，继续最小化日电费。
 
-```bash
-python question/question2.py
-```
-
-## models 模块职责
-
-`models/` 是正式模型基础层，不直接求解具体问题。
-
-### `parameters.py`
-
-保存题目参数和默认参数对象。
-
-常用内容：
-
-- `ModelParameters`
-- `DEFAULT_PARAMS`
-- `price_schedule()`
-
-### `components.py`
-
-保存物理组件功率公式：
-
-- `gpu_power_single(load)`：单块 GPU 功率，单位 W。
-- `gpu_cluster_power(load)`：8 块 GPU 总功率，单位 kW。
-- `transmission_power(rate)`：传输功率，单位 kW。
-- `cooling_steady_power(load)`：冷却稳态功率，单位 kW。
-
-### `task.py`
-
-保存任务量和误差公式：
-
-- `hourly_work(load, rate)`
-- `total_work(loads, rates)`
-- `analysis_error(load, rate)`
-- `weighted_average_error(loads, rates)`
-
-### `battery.py`
-
-保存电池相关计算：
-
-- `next_soc(soc, charge_power, discharge_power)`
-- `grid_power(system_load_power, charge_power, discharge_power)`
-
-### `constraints.py`
-
-保存通用约束检查函数：
-
-- `within_bounds(values, lower, upper)`
-- `cyclic_deltas(values)`
-- `max_abs_cyclic_delta(values)`
-- `bounds_violation(values, lower, upper)`
-- `cyclic_delta_violation(values, limit)`
-
-### `objectives.py`
-
-保存目标函数相关计算：
-
-- `system_power(load, rate)`
-- `daily_energy(loads, rates)`
-- `daily_cost(loads, rates)`
-
-## 快速示例
-
-计算静态方案 `G=85%, R=1200Mbps`：
-
-```python
-import numpy as np
-
-from models.objectives import daily_energy
-from models.task import total_work, weighted_average_error
-
-loads = np.full(24, 85.0)
-rates = np.full(24, 1200.0)
-
-print(daily_energy(loads, rates))
-print(total_work(loads, rates))
-print(weighted_average_error(loads, rates))
-```
-
-预期结果：
+推荐长期循环方案：
 
 ```text
-158.64
-1.275
-5.0
+循环保留电量 = 24 kWh
+日电费 = 158.6374 元
+系统总能耗 = 157.1937 kWh
+电网购电量 = 163.9493 kWh
+总处理量 = 1.2690
+加权平均误差 = 5.0000%
+总充电量 = 35.5556 kWh
+总放电量 = 28.8000 kWh
+峰时段放电量 = 24.8627 kWh
+最大冷却功率变化 = 0.2000 kW
 ```
 
-## 测试
+结论：电池在谷时段充电、峰时段放电，进一步降低电费；冷却惯性使 GPU 负载曲线更平滑，也让模型更接近实际运行。
 
-在项目根目录运行：
+### 问题四
+
+目标：在问题三基础上加入 GPU 负载变化率和传输速率变化率约束。
+
+结果：
+
+```text
+结果来源 = question3-feasible
+日电费 = 158.6374 元
+总处理量 = 1.2690
+加权平均误差 = 5.0000%
+最大 GPU 负载变化 = 1.6667% / 8%
+最大传输速率变化 = 0.0000 Mbps / 300 Mbps
+最大冷却功率变化 = 0.2000 kW / 0.2 kW
+```
+
+结论：问题三推荐方案已经满足问题四新增约束，因此问题四最优结果与问题三一致。真正限制调度平滑性的是冷却惯性约束，而不是 GPU 负载变化率或传输速率变化率。
+
+## 常用运行命令
+
+请在项目根目录运行命令。
+
+求解四个问题：
+
+```bash
+python -m question.question1
+python -m question.question2
+python -m question.question3
+python -m question.question4
+```
+
+生成四个问题的图像：
+
+```bash
+python -m visualization.question1_plots
+python -m visualization.question2_plots
+python -m visualization.question3_plots
+python -m visualization.question4_plots
+```
+
+如果使用直接脚本运行，也可以：
+
+```bash
+python question/question1.py
+python question/question2.py
+python question/question3.py
+python question/question4.py
+
+python visualization/question1_plots.py
+python visualization/question2_plots.py
+python visualization/question3_plots.py
+python visualization/question4_plots.py
+```
+
+运行测试：
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-当前测试覆盖：
+## 图像输出
 
-- GPU、传输、冷却参考点。
-- 基准处理量。
-- 8-GPU 误差模型。
-- 分时电价数量。
-- 电池 SOC 递推。
-- 日能耗和日电费计算。
-- 问题一最优解、可行性和直接运行脚本。
-- 问题一可视化网格、误差公式、输出图片和统一配色。
+问题一图像：
 
-## 后续开发规则
+- `outputs/question1/error_surface_3d.png`
+- `outputs/question1/power_surface_3d.png`
+- `outputs/question1/feasible_region_2d.png`
+- `outputs/question1/power_breakdown_curve.png`
 
-1. `models/` 只放可复用公式，不放具体问题求解过程。
-2. `question/` 负责问题一到问题四的优化建模和求解。
-3. `visualization/` 负责论文图表、结果表和图片导出。
-4. 不要在 `question/` 里重复写 GPU、传输、冷却、误差公式，应调用 `models/`。
-5. 每次修改模型公式，都要同步更新测试。
-6. `huo/` 中代码不直接作为正式版本修改，保留作早期思路参考。
+问题二图像：
+
+- `outputs/question2/tariff_schedule.png`
+- `outputs/question2/power_cost_schedule.png`
+- `outputs/question2/work_error_contribution.png`
+- `outputs/question2/rate_max_reason.png`
+- `outputs/question2/q1_q2_comparison.png`
+
+问题三图像：
+
+- `outputs/question3/reserve_soc_comparison.png`
+- `outputs/question3/schedule_profile.png`
+- `outputs/question3/battery_schedule.png`
+- `outputs/question3/cooling_inertia.png`
+- `outputs/question3/grid_power_cost.png`
+- `outputs/question3/q2_q3_comparison.png`
+
+问题四图像：
+
+- `outputs/question4/schedule_profile.png`
+- `outputs/question4/change_rate_check.png`
+- `outputs/question4/constraint_margin_summary.png`
+- `outputs/question4/q3_q4_comparison.png`
+
+所有图像说明文档在 `visualization/问题一图像说明.md` 到 `visualization/问题四图像说明.md`。
+
+## 队友取用建议
+
+1. 写论文模型部分：优先看 `模型说明.md` 和 `question/问题X设计.md`。
+2. 写论文结果部分：优先看 `问题结果md/问题X.md`。
+3. 插图：直接从 `outputs/questionX/` 取 PNG。
+4. 查公式实现：看 `models/`，不要以 `huo/` 为正式代码依据。
+5. 继续改图：只改 `visualization/`，不要把绘图逻辑写进 `question/`。
+6. 继续改模型：先改 `models/` 或对应 `question/questionX.py`，再同步更新测试和结果文档。
