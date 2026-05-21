@@ -1,6 +1,6 @@
 # AI 算力节能调度建模项目
 
-本项目用于 2026 校选数学建模题“人工智能算力的电力消耗”。目前四个问题的建模、求解代码、结果文档和可视化初版均已完成；图像可继续按论文排版需要微调。
+本项目用于 2026 校选数学建模题“人工智能算力的电力消耗”。目前四个问题的建模、求解代码、结果文档和正文主图均已完成；队友可直接从 `问题结果md/` 取文字内容，从 `outputs/` 取论文图片。
 
 ## 当前进度
 
@@ -10,8 +10,8 @@
 | 问题一：最小能耗 | 已完成 | `question/question1.py`，`问题结果md/问题一.md` |
 | 问题二：分时电价最小电费 | 已完成 | `question/question2.py`，`问题结果md/问题二.md` |
 | 问题三：电池储能与冷却惯性 | 已完成 | `question/question3.py`，`问题结果md/问题三.md` |
-| 问题四：负载与传输速率变化率约束 | 初版完成 | `question/question4.py`，`问题结果md/问题四.md` |
-| 四问可视化 | 初版完成 | `visualization/`，`outputs/` |
+| 问题四：负载与传输速率变化率约束 | 已完成 | `question/question4.py`，`问题结果md/问题四.md` |
+| 四问可视化 | 已完成 | `visualization/`，`outputs/` |
 
 ## 目录说明
 
@@ -165,7 +165,7 @@ GPU负载 G = 85%
 最大冷却功率变化 = 0.2000 kW / 0.2 kW
 ```
 
-结论：问题三推荐方案已经满足问题四新增约束，因此问题四最优结果与问题三一致。真正限制调度平滑性的是冷却惯性约束，而不是 GPU 负载变化率或传输速率变化率。
+结论：问题三推荐方案已经满足问题四新增约束，因此问题四最优结果与问题三一致。真正限制调度平滑性的是冷却惯性约束，而不是 GPU 负载变化率或传输速率变化率。问题四正文主图只保留两张：一张说明“新增平滑约束弱于主约束”，一张说明“问题三与问题四核心指标一致”。
 
 ## 常用运行命令
 
@@ -237,18 +237,18 @@ python -m unittest discover -s tests -v
 
 问题四图像：
 
-- `outputs/question4/schedule_profile.png`
-- `outputs/question4/change_rate_check.png`
-- `outputs/question4/constraint_margin_summary.png`
+- `outputs/question4/constraint_strength_comparison.png`
+  说明主约束与新增平滑约束的强弱关系，并解释原最优点未被排除。
 - `outputs/question4/q3_q4_comparison.png`
+  说明问题三和问题四的日电费、系统能耗、处理量和误差保持一致。
 
 所有图像说明文档在 `visualization/问题一图像说明.md` 到 `visualization/问题四图像说明.md`。
 
 ## 队友取用建议
 
 1. 写论文模型部分：优先看 `模型说明.md` 和 `question/问题X设计.md`。
-2. 写论文结果部分：优先看 `问题结果md/问题X.md`。
-3. 插图：直接从 `outputs/questionX/` 取 PNG。
+2. 写论文结果部分：优先看 `问题结果md/问题X.md`；问题四文档中已经预留两张图片位置。
+3. 插图：直接从 `outputs/questionX/` 取 PNG；问题四正文只取 `constraint_strength_comparison.png` 和 `q3_q4_comparison.png`。
 4. 查公式实现：看 `models/`，不要以 `huo/` 为正式代码依据。
 5. 继续改图：只改 `visualization/`，不要把绘图逻辑写进 `question/`。
 6. 继续改模型：先改 `models/` 或对应 `question/questionX.py`，再同步更新测试和结果文档。

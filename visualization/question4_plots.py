@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
+from matplotlib.patches import FancyBboxPatch, Patch
 
 # 支持直接运行本文件：
 #     python visualization/question4_plots.py
@@ -45,13 +45,23 @@ Q4_COLORS = {
     "bar_alt": PAPER_PALETTE[9],
     "q3": PAPER_PALETTE[1],
     "q4": PAPER_PALETTE[7],
+    "main_constraint": PAPER_PALETTE[5],
+    "smooth_constraint": PAPER_PALETTE[2],
+    "intersection": PAPER_PALETTE[3],
+    "optimal_point": PAPER_PALETTE[6],
     "text": PAPER_PALETTE[5],
 }
 Q4_LEGEND_LOCATIONS = {
     "schedule_profile": "lower left",
     "constraint_margin_summary": "upper left",
     "q3_q4_comparison": "upper left",
+    "constraint_strength_comparison": "upper left",
 }
+DEPRECATED_MAIN_PLOTS = (
+    "schedule_profile.png",
+    "change_rate_check.png",
+    "constraint_margin_summary.png",
+)
 Q4_ZORDERS = {
     "background": 0,
     "tariff_boundaries": 2,
@@ -254,6 +264,42 @@ def generate_constraint_margin_data(
         "actual": actual,
         "limits": limits,
         "usage_rates": actual / limits * 100.0,
+    }
+
+
+def generate_constraint_strength_data(
+    result: Question4Result,
+    *,
+    params: ModelParameters = DEFAULT_PARAMS,
+) -> dict[str, np.ndarray]:
+    """整理主约束和平滑约束强弱对比数据。"""
+
+    actual = np.array(
+        [
+            float(result.weighted_error),
+            float(result.max_cooling_delta),
+            float(result.max_load_delta),
+            float(result.max_rate_delta),
+        ],
+        dtype=float,
+    )
+    limits = np.array(
+        [
+            params.error_limit_percent,
+            params.cooling_change_limit_kw,
+            params.gpu_change_limit_percent,
+            params.rate_change_limit_mbps,
+        ],
+        dtype=float,
+    )
+    return {
+        "labels": np.array(["加权误差", "冷却变化", "GPU负载变化", "传输速率变化"]),
+        "constraint_types": np.array(["主约束", "主约束", "平滑约束", "平滑约束"]),
+        "actual": actual,
+        "limits": limits,
+        "usage_rates": actual / limits * 100.0,
+        "set_relation": "主约束区域在平滑约束范围内",
+        "optimal_relation": "问题三最优点 = 问题四最优点",
     }
 
 
@@ -562,26 +608,226 @@ def plot_q3_q4_comparison(
     return _save_and_close(fig, output_path)
 
 
+def plot_constraint_strength_comparison(result: Question4Result, output_dir: str | Path) -> Path:
+    """绘制主约束与新增平滑约束强弱对比图。"""
+
+    apply_chinese_style()
+    output_path = ensure_output_dir(output_dir) / "constraint_strength_comparison.png"
+    data = generate_constraint_strength_data(result)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.8), gridspec_kw={"width_ratios": [1.05, 1.35]})
+    ax_set, ax_bar = axes
+
+    # 左图用嵌套集合关系说明：新增平滑约束更宽，没有排除问题三最优点。
+    ax_set.set_xlim(0, 10)
+    ax_set.set_ylim(0, 7)
+    ax_set.axis("off")
+    smooth_region = FancyBboxPatch(
+        (0.75, 0.75),
+        8.5,
+        5.6,
+        boxstyle="round,pad=0.28,rounding_size=0.55",
+        facecolor=Q4_COLORS["smooth_constraint"],
+        edgecolor=Q4_COLORS["load"],
+        linewidth=2.0,
+        linestyle="--",
+        alpha=0.42,
+        zorder=Q4_ZORDERS["background"],
+    )
+    main_region = FancyBboxPatch(
+        (2.2, 1.75),
+        5.6,
+        3.55,
+        boxstyle="round,pad=0.24,rounding_size=0.45",
+        facecolor=Q4_COLORS["main_constraint"],
+        edgecolor=Q4_COLORS["text"],
+        linewidth=2.0,
+        alpha=0.84,
+        zorder=Q4_ZORDERS["bars"],
+    )
+    for patch in (smooth_region, main_region):
+        ax_set.add_patch(patch)
+
+    ax_set.scatter(
+        [5.0],
+        [3.35],
+        s=120,
+        color=Q4_COLORS["optimal_point"],
+        edgecolor="#FFFFFF",
+        linewidth=1.2,
+        zorder=Q4_ZORDERS["annotations"],
+        label="问题三最优点",
+    )
+    ax_set.annotate(
+        data["optimal_relation"],
+        xy=(5.0, 3.35),
+        xytext=(6.9, 4.72),
+        arrowprops={"arrowstyle": "->", "color": "#FFFFFF", "linewidth": 1.8},
+        color=Q4_COLORS["text"],
+        fontsize=10,
+        bbox={"boxstyle": "round,pad=0.22", "facecolor": "#FFFFFF", "edgecolor": "#DDDDDD", "alpha": 1.0},
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_set.text(
+        5.0,
+        6.05,
+        "新增平滑约束范围",
+        ha="center",
+        va="center",
+        color=Q4_COLORS["text"],
+        fontsize=10,
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_set.text(
+        5.0,
+        4.08,
+        "主约束可行区域",
+        ha="center",
+        va="center",
+        color="#FFFFFF",
+        fontsize=10,
+        fontweight="bold",
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_set.text(
+        5.0,
+        2.55,
+        "更强",
+        ha="center",
+        va="center",
+        color="#FFFFFF",
+        fontsize=9.5,
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_set.text(
+        5.0,
+        1.12,
+        "平滑约束没有排除原最优点",
+        ha="center",
+        va="center",
+        color=Q4_COLORS["text"],
+        fontsize=10,
+        fontweight="bold",
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_set.text(
+        5.0,
+        0.42,
+        "因此问题四结果保持不变",
+        ha="center",
+        va="center",
+        color=Q4_COLORS["text"],
+        fontsize=9.2,
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_set.set_title("集合交运算示意")
+
+    # 右图用约束使用率展示主约束接近或达到边界，新增平滑约束明显更松。
+    x = np.arange(data["labels"].size)
+    colors = [
+        Q4_COLORS["main_constraint"] if kind == "主约束" else Q4_COLORS["smooth_constraint"]
+        for kind in data["constraint_types"]
+    ]
+    bars = ax_bar.bar(
+        x,
+        data["usage_rates"],
+        width=0.62,
+        color=colors,
+        edgecolor="#FFFFFF",
+        linewidth=0.8,
+        zorder=Q4_ZORDERS["bars"],
+    )
+    ax_bar.axhline(
+        100.0,
+        color=Q4_COLORS["limit"],
+        linewidth=2.0,
+        linestyle="--",
+        label="约束边界",
+        zorder=Q4_ZORDERS["line_plots"],
+    )
+    for bar, value in zip(bars, data["usage_rates"]):
+        ax_bar.text(
+            bar.get_x() + bar.get_width() / 2.0,
+            float(value) + 2.0,
+            f"{float(value):.1f}%",
+            ha="center",
+            va="bottom",
+            color=Q4_COLORS["text"],
+            fontsize=9.5,
+            zorder=Q4_ZORDERS["annotations"],
+        )
+    ax_bar.text(
+        0.5,
+        0.91,
+        "主约束",
+        transform=ax_bar.transAxes,
+        ha="center",
+        va="center",
+        color="#FFFFFF",
+        fontsize=10,
+        fontweight="bold",
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_bar.text(
+        0.80,
+        0.24,
+        "新增平滑约束较松",
+        transform=ax_bar.transAxes,
+        ha="center",
+        va="center",
+        color=Q4_COLORS["text"],
+        fontsize=10,
+        zorder=Q4_ZORDERS["annotations"],
+    )
+    ax_bar.set_xticks(x)
+    ax_bar.set_xticklabels(data["labels"])
+    ax_bar.set_ylabel("约束使用率（%）")
+    ax_bar.set_ylim(0, 116)
+    ax_bar.set_title("约束强弱对比")
+    ax_bar.grid(axis="y", color="#E6E6E6", linewidth=0.8, zorder=Q4_ZORDERS["background"])
+    handles = [
+        Patch(facecolor=Q4_COLORS["main_constraint"], label="主约束"),
+        Patch(facecolor=Q4_COLORS["smooth_constraint"], label="平滑约束"),
+        Line2D([0], [0], color=Q4_COLORS["limit"], linestyle="--", linewidth=2.0, label="约束边界"),
+    ]
+    legend = ax_bar.legend(
+        handles=handles,
+        loc=Q4_LEGEND_LOCATIONS["constraint_strength_comparison"],
+        bbox_to_anchor=(1.01, 1.0),
+    )
+    _style_legend(legend)
+    fig.suptitle("问题四新增平滑约束弱于主约束的原因", fontsize=15)
+    return _save_and_close(fig, output_path)
+
+
+def _remove_deprecated_main_plots(output_dir: Path) -> None:
+    """移除不再作为问题四正文主图的旧图像。"""
+
+    for filename in DEPRECATED_MAIN_PLOTS:
+        path = output_dir / filename
+        if path.exists():
+            path.unlink()
+
+
 def generate_all_question4_plots(
     *,
     result: Question4Result | None = None,
     output_dir: str | Path = PROJECT_ROOT / "outputs" / "question4",
     q3_result: Question3Result | None = None,
 ) -> list[Path]:
-    """生成问题四全部 4 张图像。"""
+    """生成问题四正文保留的 2 张主图像。"""
 
     result = result if result is not None else solve_question4()
     output_path = ensure_output_dir(output_dir)
+    _remove_deprecated_main_plots(output_path)
     return [
-        plot_schedule_profile(result, output_path),
-        plot_change_rate_check(result, output_path),
-        plot_constraint_margin_summary(result, output_path),
+        plot_constraint_strength_comparison(result, output_path),
         plot_q3_q4_comparison(result, output_path, q3_result=q3_result),
     ]
 
 
 def main() -> None:
-    """命令行入口：求解问题四并生成全部图像。"""
+    """命令行入口：求解问题四并生成正文保留图像。"""
 
     paths = generate_all_question4_plots()
     print("已生成问题四图像：")

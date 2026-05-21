@@ -14,6 +14,7 @@ from visualization.question4_plots import (
     generate_all_question4_plots,
     generate_change_rate_data,
     generate_constraint_margin_data,
+    generate_constraint_strength_data,
     generate_question4_hourly_data,
 )
 
@@ -106,6 +107,7 @@ class Question4VisualizationTests(unittest.TestCase):
         self.assertEqual(Q4_LEGEND_LOCATIONS["schedule_profile"], "lower left")
         self.assertEqual(Q4_LEGEND_LOCATIONS["constraint_margin_summary"], "upper left")
         self.assertEqual(Q4_LEGEND_LOCATIONS["q3_q4_comparison"], "upper left")
+        self.assertEqual(Q4_LEGEND_LOCATIONS["constraint_strength_comparison"], "upper left")
 
     def test_generate_question4_hourly_data_has_expected_series(self):
         result = _sample_question4_result()
@@ -140,19 +142,49 @@ class Question4VisualizationTests(unittest.TestCase):
         self.assertAlmostEqual(float(data["usage_rates"][1]), 0.0)
         self.assertAlmostEqual(float(data["usage_rates"][2]), 100.0)
 
-    def test_generate_all_question4_plots_writes_four_nonempty_pngs(self):
+    def test_generate_constraint_strength_data_compares_main_and_smoothing_constraints(self):
+        result = _sample_question4_result()
+
+        data = generate_constraint_strength_data(result)
+
+        self.assertEqual(data["labels"].shape, (4,))
+        self.assertEqual(data["constraint_types"].shape, (4,))
+        self.assertIn("加权误差", data["labels"])
+        self.assertIn("冷却变化", data["labels"])
+        self.assertIn("GPU负载变化", data["labels"])
+        self.assertIn("传输速率变化", data["labels"])
+        self.assertAlmostEqual(float(data["usage_rates"][0]), 100.0)
+        self.assertAlmostEqual(float(data["usage_rates"][1]), 100.0)
+        self.assertAlmostEqual(float(data["usage_rates"][2]), 20.8, places=1)
+        self.assertAlmostEqual(float(data["usage_rates"][3]), 0.0)
+        self.assertEqual(set(data["constraint_types"]), {"主约束", "平滑约束"})
+        self.assertEqual(data["set_relation"], "主约束区域在平滑约束范围内")
+        self.assertEqual(data["optimal_relation"], "问题三最优点 = 问题四最优点")
+
+    def test_generate_all_question4_plots_writes_two_nonempty_pngs(self):
         result = _sample_question4_result()
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_dir = Path(tmp_dir)
+            for stale_name in [
+                "schedule_profile.png",
+                "change_rate_check.png",
+                "constraint_margin_summary.png",
+            ]:
+                (output_dir / stale_name).write_bytes(b"stale")
             paths = generate_all_question4_plots(result=result, output_dir=output_dir)
 
             self.assertEqual(
                 {path.name for path in paths},
                 {
-                    "schedule_profile.png",
-                    "change_rate_check.png",
-                    "constraint_margin_summary.png",
+                    "constraint_strength_comparison.png",
+                    "q3_q4_comparison.png",
+                },
+            )
+            self.assertEqual(
+                {path.name for path in output_dir.glob("*.png")},
+                {
+                    "constraint_strength_comparison.png",
                     "q3_q4_comparison.png",
                 },
             )
