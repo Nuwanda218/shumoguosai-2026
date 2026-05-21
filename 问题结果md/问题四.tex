@@ -1,0 +1,898 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{问题四
+负载与传输速率平滑约束下的动态调度模型}\label{ux95eeux9898ux56db-ux8d1fux8f7dux4e0eux4f20ux8f93ux901fux7387ux5e73ux6ed1ux7ea6ux675fux4e0bux7684ux52a8ux6001ux8c03ux5ea6ux6a21ux578b}
+
+\subsection{1.
+问题四建模思路}\label{1-ux95eeux9898ux56dbux5efaux6a21ux601dux8def}
+
+问题四在问题三``电池储能系统 +
+冷却惯性''的动态调度模型基础上，进一步加入设备长期稳定运行要求。
+
+题目新增约束为：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  每块 GPU 从当前小时到下一小时的负载变化幅度不超过 8\%；
+\item
+  数据传输速率从当前小时到下一小时的变化幅度不超过 300 Mbps。
+\end{enumerate}
+
+因此，问题四不重新建立处理量、误差、功耗、电池和冷却模型，而是在问题三模型上增加两个变化率约束。目标函数仍然是最小化一天总电费。
+
+\subsection{2.
+与问题三模型的衔接}\label{2-ux4e0eux95eeux9898ux4e09ux6a21ux578bux7684ux8854ux63a5}
+
+问题三已经得到长期循环运行方案，并推荐每日循环保留电量为：
+
+\[S_{\text{res}}=24\text{ kWh}\]
+
+问题四主模型继续使用该循环电量，便于与问题三结果直接比较：
+
+\[S_1=S_{25}=24\]
+
+其余约束继续继承问题三，包括：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  24 小时总处理量不低于 1；
+\item
+  全天处理量加权平均误差不超过 5\%；
+\item
+  电池 SOC 始终位于 8-40 kWh；
+\item
+  电池不能同时充放电；
+\item
+  实际冷却功率满足稳态需求；
+\item
+  实际冷却功率相邻小时变化不超过 0.2 kW；
+\item
+  电网购电功率非负。
+\end{enumerate}
+
+问题四新增约束只是进一步限制 GPU 负载和传输速率的相邻小时变化。
+
+\subsection{3. 决策变量}\label{3-ux51b3ux7b56ux53d8ux91cf}
+
+问题四沿用问题三的 24 小时逐时变量：
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+符号 & 含义 & 单位 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\$G\_t\$ & 第 \$t\$ 小时每块 GPU 负载 & \% \\
+\$R\_t\$ & 第 \$t\$ 小时数据传输速率 & Mbps \\
+\$C\_t\$ & 第 \$t\$ 小时实际冷却功率 & kW \\
+\$P\_t\^{}\{ch\}\$ & 第 \$t\$ 小时电池充电功率 & kW \\
+\$P\_t\^{}\{dis\}\$ & 第 \$t\$ 小时电池放电功率 & kW \\
+\$S\_t\$ & 第 \$t\$ 小时开始时电池电量 & kWh \\
+\end{longtable}
+
+\subsection{4.
+处理量与误差模型}\label{4-ux5904ux7406ux91cfux4e0eux8befux5deeux6a21ux578b}
+
+第 \$t\$ 小时完成的日任务量比例为：
+
+\[q_t=\frac{G_t}{80}\cdot\frac{R_t}{1000}\cdot\frac{1}{24}\]
+
+全天任务量约束为：
+
+\[\sum_{t=1}^{24}q_t\ge 1\]
+
+误差模型为：
+
+\[E_t=30-0.2(G_t-60)+0.05(800-R_t)\]
+
+问题四继续采用处理量加权平均误差：
+
+\[\frac{\sum_{t=1}^{24}q_tE_t}{\sum_{t=1}^{24}q_t}\le 5\]
+
+这里不能采用逐小时误差约束，也不能采用简单平均误差。因为模型目标是完成全天数据处理任务，低处理量时段对全天误差贡献较小，高处理量时段影响更大。
+
+\subsection{5.
+冷却与电池模型}\label{5-ux51b7ux5374ux4e0eux7535ux6c60ux6a21ux578b}
+
+冷却稳态需求为：
+
+\[C_t^*=1.2+0.12(G_t-60)\]
+
+实际冷却功率为决策变量，并满足：
+
+\[C_t\ge C_t^*\]
+
+\[|C_{t+1}-C_t|\le 0.2\]
+
+为了保证长期循环运行，还加入日周期边界：
+
+\[|C_1-C_{24}|\le 0.2\]
+
+电池 SOC 递推为：
+
+\[S_{t+1}=S_t+0.9P_t^{ch}-\frac{P_t^{dis}}{0.9}\]
+
+并满足：
+
+\[8\le S_t\le 40\]
+
+\[S_1=S_{25}=24\]
+
+\subsection{6.
+新增平滑约束}\label{6-ux65b0ux589eux5e73ux6ed1ux7ea6ux675f}
+
+题目要求 GPU 负载相邻小时变化不超过 8\%，因此：
+
+\[|G_{t+1}-G_t|\le 8,\quad t=1,2,\dots,23\]
+
+考虑长期重复调度，加入日周期边界：
+
+\[|G_1-G_{24}|\le 8\]
+
+题目要求数据传输速率相邻小时变化不超过 300 Mbps，因此：
+
+\[|R_{t+1}-R_t|\le 300,\quad t=1,2,\dots,23\]
+
+同样加入日周期边界：
+
+\[|R_1-R_{24}|\le 300\]
+
+\subsection{7. 目标函数}\label{7-ux76eeux6807ux51fdux6570}
+
+第 \$t\$ 小时电网购电功率为：
+
+\[P_t^{grid}=P_t^{gpu}+P_t^{trans}+C_t+P_t^{ch}-P_t^{dis}\]
+
+其中：
+
+\[P_t^{gpu}=\frac{8P_g(G_t)}{1000}\]
+
+\[P_t^{trans}=0.25+0.0004(R_t-800)\]
+
+问题四目标函数为：
+
+\[\min F=\sum_{t=1}^{24} c_tP_t^{grid}\]
+
+同时要求：
+
+\[P_t^{grid}\ge 0\]
+
+\subsection{8. 求解逻辑}\label{8-ux6c42ux89e3ux903bux8f91}
+
+问题四是在问题三基础上增加约束。若问题三最优调度方案本身已经满足问题四新增约束，则该方案仍可作为问题四的最优方案。
+
+理由是：问题四的可行域是问题三可行域的子集。如果问题三最优解已经属于问题四可行域，那么问题四中不可能存在比该解电费更低的可行方案。否则会与问题三最优性矛盾。
+
+本次求解采用以下流程：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  先求解问题三在 \$S\_\{\textbackslash text\{res\}\}=24\$ kWh
+  下的推荐方案；
+\item
+  检查该方案是否满足 GPU 负载变化率和传输速率变化率约束；
+\item
+  若满足，则直接继承问题三结果；
+\item
+  若不满足，则在问题三约束基础上加入新增变化率约束重新优化。
+\end{enumerate}
+
+计算结果显示，问题三推荐方案已经满足问题四新增约束，因此问题四结果来源为：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{question3{-}feasible}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{9. 计算结果}\label{9-ux8ba1ux7b97ux7ed3ux679c}
+
+问题四最优结果如下：
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+指标 & 数值 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+循环保留电量 & 24.0 kWh \\
+最小日电费 & 158.6374 元 \\
+系统总能耗 & 157.1937 kWh \\
+电网购电量 & 163.9493 kWh \\
+总处理量 & 1.2690 \\
+加权平均误差 & 5.0000\% \\
+总充电量 & 35.5556 kWh \\
+总放电量 & 28.8000 kWh \\
+峰时段放电量 & 24.8627 kWh \\
+最大 GPU 负载变化 & 1.6667\% \\
+GPU 负载变化限制 & 8.0\% \\
+最大传输速率变化 & 0.0000 Mbps \\
+传输速率变化限制 & 300.0 Mbps \\
+最大冷却功率变化 & 0.2000 kW \\
+冷却功率变化限制 & 0.2 kW \\
+\end{longtable}
+
+从结果可以看出，问题四的最小日电费与问题三相同，仍为：
+
+\[158.6374\text{ 元}\]
+
+这是因为问题三推荐方案已经满足问题四新增的 GPU
+负载和传输速率变化率约束。
+
+\subsection{10. 24
+小时调度结果}\label{10-24-ux5c0fux65f6ux8c03ux5ea6ux7ed3ux679c}
+
+\begin{longtable}[]{@{}llllllllll@{}}
+\toprule\noalign{}
+小时 & 电价 & GPU负载 & 传输速率 & 实际冷却 & 充电 & 放电 & SOC起点 &
+购电功率 & 小时电费 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & 0.8 & 91.267 & 1200.0 & 4.9521 & 11.9998 & 0.0000 & 24.0000 &
+19.4621 & 15.5697 \\
+2 & 0.8 & 92.934 & 1200.0 & 5.1521 & 5.7775 & 0.0000 & 34.7998 & 13.4665
+& 10.7732 \\
+3 & 0.8 & 94.601 & 1200.0 & 5.3521 & 0.0005 & 0.0000 & 39.9995 & 7.9162
+& 6.3329 \\
+4 & 0.8 & 92.934 & 1200.0 & 5.1521 & 0.0000 & 0.0000 & 40.0000 & 7.6890
+& 6.1512 \\
+5 & 0.8 & 91.267 & 1200.0 & 4.9521 & 0.0000 & 0.0000 & 40.0000 & 7.4623
+& 5.9699 \\
+6 & 0.8 & 89.601 & 1200.0 & 4.7521 & 0.0000 & 0.0000 & 40.0000 & 7.2357
+& 5.7885 \\
+7 & 1.2 & 87.934 & 1200.0 & 4.5521 & 0.0000 & 0.3282 & 40.0000 & 6.6808
+& 8.0170 \\
+8 & 1.2 & 86.267 & 1200.0 & 4.3521 & 0.0000 & 0.3281 & 39.6354 & 6.4542
+& 7.7451 \\
+9 & 1.2 & 84.601 & 1200.0 & 4.1521 & 0.0000 & 0.3281 & 39.2708 & 6.2275
+& 7.4730 \\
+10 & 2.0 & 82.934 & 1200.0 & 3.9521 & 0.0000 & 6.3290 & 38.9062 & 0.0000
+& 0.0000 \\
+11 & 2.0 & 81.267 & 1200.0 & 3.7521 & 0.0000 & 6.1023 & 31.8740 & 0.0000
+& 0.0000 \\
+12 & 1.2 & 79.601 & 1200.0 & 3.5521 & 0.0000 & 0.3282 & 25.0936 & 5.5443
+& 6.6531 \\
+13 & 1.2 & 77.934 & 1200.0 & 3.3521 & 0.0000 & 0.3281 & 24.7290 & 5.3044
+& 6.3653 \\
+14 & 1.2 & 76.267 & 1200.0 & 3.1521 & 0.0000 & 0.3281 & 24.3645 & 5.0644
+& 6.0773 \\
+15 & 1.2 & 74.601 & 1200.0 & 2.9521 & 0.0000 & 0.3282 & 23.9999 & 4.8243
+& 5.7891 \\
+16 & 1.2 & 76.267 & 1200.0 & 3.1521 & 0.0000 & 0.3281 & 23.6352 & 5.0644
+& 6.0773 \\
+17 & 1.2 & 77.934 & 1200.0 & 3.3521 & 0.0000 & 0.3281 & 23.2707 & 5.3044
+& 6.3653 \\
+18 & 1.2 & 79.601 & 1200.0 & 3.5521 & 0.0000 & 0.3280 & 22.9062 & 5.5444
+& 6.6533 \\
+19 & 2.0 & 81.267 & 1200.0 & 3.7521 & 0.0000 & 6.1023 & 22.5417 & 0.0000
+& 0.0000 \\
+20 & 2.0 & 82.934 & 1200.0 & 3.9521 & 0.0000 & 6.3290 & 15.7613 & 0.0000
+& 0.0000 \\
+21 & 1.2 & 84.601 & 1200.0 & 4.1521 & 0.0000 & 0.3281 & 8.7291 & 6.2276
+& 7.4731 \\
+22 & 1.2 & 86.267 & 1200.0 & 4.3521 & 0.0000 & 0.3281 & 8.3646 & 6.4542
+& 7.7451 \\
+23 & 0.8 & 87.934 & 1200.0 & 4.5521 & 8.8889 & 0.0000 & 8.0000 & 15.8979
+& 12.7184 \\
+24 & 0.8 & 89.601 & 1200.0 & 4.7521 & 8.8888 & 0.0000 & 16.0000 &
+16.1245 & 12.8996 \\
+\end{longtable}
+
+终止电量为：
+
+\[S_{25}=24.0000\text{ kWh}\]
+
+\subsection{11.
+新增约束是否起作用}\label{11-ux65b0ux589eux7ea6ux675fux662fux5426ux8d77ux4f5cux7528}
+
+问题四新增两个变化率约束，并采用日周期边界：
+
+\[|G_{t+1}-G_t|\le 8\]
+
+\[|R_{t+1}-R_t|\le 300\]
+
+计算结果如下：
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+约束 & 最大实际变化 & 约束上限 & 是否绑定 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+GPU 负载变化率 & 1.6667\% & 8.0\% & 否 \\
+传输速率变化率 & 0.0000 Mbps & 300.0 Mbps & 否 \\
+冷却功率变化率 & 0.2000 kW & 0.2 kW & 是 \\
+\end{longtable}
+
+\subsubsection{11.1
+集合交运算下的最优性保留}\label{111-ux96c6ux5408ux4ea4ux8fd0ux7b97ux4e0bux7684ux6700ux4f18ux6027ux4fddux7559}
+
+问题四是在问题三基础上增加约束，因此可以用集合交运算解释为什么结果没有变化。
+
+设问题三全部约束形成的可行域为 \$\textbackslash Omega\_3\$。这里的
+\$\textbackslash Omega\_3\$ 已经包含任务量约束、加权平均误差约束、电池
+SOC
+约束、充放电功率约束、冷却稳态需求约束和冷却功率变化率约束。问题三是在
+\$\textbackslash Omega\_3\$ 内寻找日电费最低的调度方案。
+
+问题四新增两个约束集合：
+
+\[\mathcal S_G=\{x: |G_{t+1}-G_t|\le 8,\ t=1,2,\cdots,24\}\]
+
+\[\mathcal S_R=\{x: |R_{t+1}-R_t|\le 300,\ t=1,2,\cdots,24\}\]
+
+其中第 24 小时到第 1 小时的日周期边界也包含在约束中。
+
+因此，问题四可行域不是重新定义一个独立区域，而是在问题三可行域上继续取交集：
+
+\[\Omega_4=\Omega_3\cap \mathcal S_G\cap \mathcal S_R\]
+
+这个式子的含义是：只有同时满足问题三所有约束、GPU
+负载变化率约束和传输速率变化率约束的调度方案，才属于问题四可行域。
+
+由于交集只会使可行域不变或缩小，因此：
+
+\[\Omega_4\subseteq \Omega_3\]
+
+一般情况下，若新增约束切掉了问题三最优解所在位置，则需要在更小的可行域
+\$\textbackslash Omega\_4\$
+中重新寻找最优解，日电费可能升高。但本题计算结果表明，问题三最优解
+\$x\_3\^{}*\$ 本身已经满足新增的两个平滑约束：
+
+\[x_3^\*\in \mathcal S_G\cap \mathcal S_R\]
+
+这意味着问题三最优解仍在问题四可行域中：
+
+\[x_3^\*\in \Omega_4\]
+
+从最优值角度可以进一步说明。记问题三最优日电费为
+\$f\_3\^{}*\$，问题四最优日电费为 \$f\_4\^{}*\$。
+
+一方面，因为
+\$\textbackslash Omega\_4\textbackslash subseteq\textbackslash Omega\_3\$，问题四是在问题三可行域的子集上优化，所以不可能找到比问题三更低的日电费：
+
+\[f_4^\*\ge f_3^\*\]
+
+另一方面，因为 \$x\_3\^{}*\$ 仍然属于
+\$\textbackslash Omega\_4\$，问题四至少可以选择问题三这套方案，所以问题四日电费不可能高于问题三方案对应的日电费：
+
+\[f_4^\*\le f(x_3^\*)=f_3^\*\]
+
+两式合并可得：
+
+\[f_4^\*=f_3^\*\]
+
+这说明问题四不是重新得到一个不同方案，而是在集合交运算后保留了问题三最优解。换句话说，新增平滑约束没有切掉原最优解所在位置，因此最优结果不变。
+
+从图像角度看，可以把 \$\textbackslash mathcal
+S\_G\textbackslash cap\textbackslash mathcal S\_R\$
+理解为新增平滑约束允许的范围，把 \$\textbackslash Omega\_3\$
+理解为问题三主约束已经限定出的可行区域。本题中，\$\textbackslash Omega\_3\$
+位于新增平滑约束允许范围内，所以取交集后仍保留原最优点。这就是``平滑性约束较弱，没有起作用''的数学含义。
+
+\subsubsection{11.2
+传输速率变化率约束}\label{112-ux4f20ux8f93ux901fux7387ux53d8ux5316ux7387ux7ea6ux675f}
+
+传输速率变化率约束不绑定，是因为前三问已经说明传输速率提高带来的功耗增加较小，而降低误差的作用明显，因此最优方案中传输速率始终保持在上限：
+
+\[R_t=1200\text{ Mbps}\]
+
+因此：
+
+\[|R_{t+1}-R_t|=0\]
+
+与约束上限 \$300\$ Mbps 相比，该约束完全不紧。
+
+\subsubsection{11.3 GPU
+负载变化率约束}\label{113-gpu-ux8d1fux8f7dux53d8ux5316ux7387ux7ea6ux675f}
+
+GPU 负载变化率约束同样不绑定。本结果中：
+
+\[\max |G_{t+1}-G_t|=1.6667\%<8\%\]
+
+这不是建模错误，而是问题三中的冷却功率变化率约束已经限制了系统快速升降负载，导致
+GPU 负载曲线本身较平滑。
+
+真正起作用的是冷却惯性约束：
+
+\[\max |C_{t+1}-C_t|=0.2000\text{ kW}\]
+
+该值刚好达到题目限制：
+
+\[|C_{t+1}-C_t|\le 0.2\text{ kW}\]
+
+因此，问题四新增约束没有改变最优调度的根本原因是：问题三中的冷却惯性约束已经成为实际控制调度平滑性的主约束。
+
+\subsection{12.
+理论与工程合理性论证}\label{12-ux7406ux8bbaux4e0eux5de5ux7a0bux5408ux7406ux6027ux8bbaux8bc1}
+
+问题四出现``新增平滑约束对最优结果没有影响''的现象，需要在论文中解释清楚。该现象不是计算异常，而是多约束优化中常见的约束松弛或非活跃约束现象，也有工程调度和统计误差评估方面的支撑。
+
+\subsubsection{12.1
+活跃约束与冗余约束}\label{121-ux6d3bux8dc3ux7ea6ux675fux4e0eux5197ux4f59ux7ea6ux675f}
+
+在优化与调度问题中，约束通常可以分为两类：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  活跃约束：在最优解处恰好达到边界，直接决定最优解位置；
+\item
+  非活跃约束或冗余约束：在最优解处自然满足，不参与定义最优边界。
+\end{enumerate}
+
+若某个约束集合对可行域的限制较弱，使得原最优解已经位于该约束集合内部，则加入该约束不会改变最优解。用集合语言表示就是：
+
+\[\Omega_{\text{主约束}}\subseteq \Omega_{\text{平滑约束}}\]
+
+此时平滑约束集合比主约束形成的可行域更宽，主约束可行域中的解会自动满足平滑约束。因此，交运算：
+
+\[\Omega_{\text{主约束}}\cap\Omega_{\text{平滑约束}}\]
+
+不会进一步缩小主约束已经确定的关键可行域。
+
+在本题中，任务量约束、加权平均误差约束、电池 SOC
+约束和冷却惯性约束共同决定问题三的最优方案。问题四新增的 GPU
+负载变化率和传输速率变化率限制没有成为活跃约束，因此不会改变日电费最优值。
+
+\subsubsection{12.2
+项目调度中的资源平滑案例}\label{122-ux9879ux76eeux8c03ux5ea6ux4e2dux7684ux8d44ux6e90ux5e73ux6ed1ux6848ux4f8b}
+
+资源平滑（resource smoothing）是项目管理中的经典概念，常见于 PMBOK
+等项目管理资料。其核心思想是利用活动的自由浮动时间或总浮动时间来平滑资源使用，但不改变关键路径和项目完成时间。
+
+这类问题与本题具有相似结构：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  项目关键路径对应本题中的任务量、误差、电池和冷却主约束；
+\item
+  资源平滑对应本题中的 GPU 负载和传输速率变化率约束；
+\item
+  当关键路径已经决定项目总工期时，资源平滑只在可行解内部调整资源波动，不改变主要结果。
+\end{enumerate}
+
+因此，资源平滑是一个典型工程案例：平滑类约束可以提高方案稳定性或可执行性，但不一定改变主目标的最优值。
+
+\subsubsection{12.3
+数据中心多时间尺度调度研究的启示}\label{123-ux6570ux636eux4e2dux5fc3ux591aux65f6ux95f4ux5c3aux5ea6ux8c03ux5ea6ux7814ux7a76ux7684ux542fux793a}
+
+在数据中心优化调度研究中，批处理负载通常具有延迟容忍性、到达率变化和内部任务结构等特征。多时间尺度调度模型会利用这些负载特性优化能耗，同时考虑服务器能耗或负载曲线的平滑性。
+
+这类研究说明两点：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  平滑性约束在工程调度中有实际意义，可以改善系统运行稳定性；
+\item
+  不同约束对最优解的作用强度并不相同，有些约束主要影响波动程度，不一定改变任务完成量、执行性能或总体能耗。
+\end{enumerate}
+
+因此，本题中``平滑性约束被自然满足''是合理的。它说明当前调度方案已经具备较好的工程平滑性，而不是说明平滑性约束没有建模价值。
+
+\subsubsection{12.4
+平均误差口径的统计合理性}\label{124-ux5e73ux5747ux8befux5deeux53e3ux5f84ux7684ux7edfux8ba1ux5408ux7406ux6027}
+
+本题处理对象是批量噪声频谱分析任务，不是实时控制任务。对这类统计分析任务，更合理的精度评价方式通常是整体或平均意义下的误差，而不是要求每个小时的瞬时误差都严格小于阈值。
+
+在信号处理领域，Signal Averaging
+通过重复测量和平均来提高信噪比，说明平均化处理本身是噪声分析中的重要思想。其基本含义是：多次测量结果的平均可以抑制随机噪声，使整体信号质量提高。
+
+在统计估计与预测问题中，均方误差（MSE）和平均绝对误差（MAE）也是典型的平均类误差指标：
+
+\[MSE=E[(\hat{\theta}-\theta)^2]\]
+
+\[MAE=\frac{1}{n}\sum_{i=1}^{n}|e_i|\]
+
+这些指标都强调总体误差或平均误差，而不是对每一个时刻设置硬性瞬时阈值。因此，本文在问题二到问题四中采用处理量加权平均误差约束：
+
+\[\frac{\sum_{t=1}^{24}q_tE_t}{\sum_{t=1}^{24}q_t}\le 5\%\]
+
+符合批量统计分析任务的特点。
+
+\subsubsection{12.5
+与本题结果的联系}\label{125-ux4e0eux672cux9898ux7ed3ux679cux7684ux8054ux7cfb}
+
+综合上述理论和工程背景，本题出现以下现象是合理的：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  传输速率长期保持 \$1200\$ Mbps，因此传输速率变化率约束自然满足；
+\item
+  冷却惯性约束已经使 GPU 负载曲线平滑，因此 GPU 负载变化率约束自然满足；
+\item
+  新增平滑约束不属于问题四最优解的活跃约束集，因此不改变最优日电费；
+\item
+  加权平均误差口径符合批处理频谱分析任务的统计性质。
+\end{enumerate}
+
+换句话说，问题四新增约束的主要作用不是继续降低费用，而是验证问题三调度方案是否具有长期稳定运行能力。计算结果表明，原方案通过集合交运算后仍被完整保留，这恰好证明该方案同时满足经济性和工程平滑性要求。
+
+可用于汇报的归纳表述如下：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{在优化与调度理论中，若某约束始终在其他更强约束形成的可行域内部，则它不会成为最优解的活跃约束，从而不会改变最优方案。本题中，问题三的冷却惯性和储能调度已经使 GPU 负载曲线足够平滑，传输速率又始终保持在 1200 Mbps，因此问题四新增的负载与传输速率变化率约束被自然满足。该现象与项目管理中的资源平滑不改变关键路径、统计信号处理中采用平均误差指标的思想一致，说明问题四结果不变具有理论和工程合理性。}
+\end{Highlighting}
+\end{Shaded}
+
+参考文献：
+
+\subparagraph{1）数学/调度理论：弱约束对最优解无影响的现象是有理论支持的}\label{1uxff09ux6570ux5b66ux8c03ux5ea6ux7406ux8bbaux5f31ux7ea6ux675fux5bf9ux6700ux4f18ux89e3ux65e0ux5f71ux54cdux7684ux73b0ux8c61ux662fux6709ux7406ux8bbaux652fux6301ux7684}
+
+在优化/调度问题中，约束可分为：
+
+\begin{itemize}
+\item
+  \textbf{最有约束（active
+  constraint）}：在最优解上``恰好等式成立''，决定解的边界
+\item
+  \textbf{非活跃/冗余约束（inactive/redundant
+  constraint）}：在可行域内部自然满足，对最优解边界无影响
+\end{itemize}
+
+这在调度和运筹优化理论中是基本概念：\textbf{不在``活跃约束集''里的约束不会影响最优解的位置}。虽然我们不引用具体定理，但这一点可在任何经典优化教材或研究综述中找到相关讨论（例如约束优化、KKT
+条件分析等）。这说明：
+
+\begin{quote}
+如果一个约束的要求弱得多（例如平滑性约束）能够被更强约束（如误差/任务量约束）自动满足，那么它在求解最优调度时就``失效''了，不参与最优边界的形成。
+\end{quote}
+
+这是\textbf{数学优化理论上的固有属性}，并不是偶然。
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subparagraph{2）工程案例：项目调度中的资源平滑就是实际弱约束情形}\label{2uxff09ux5de5ux7a0bux6848ux4f8bux9879ux76eeux8c03ux5ea6ux4e2dux7684ux8d44ux6e90ux5e73ux6ed1ux5c31ux662fux5b9eux9645ux5f31ux7ea6ux675fux60c5ux5f62}
+
+虽然不是直接研究``GPU
+平滑性约束''，下面的文献和资料提供了一个真实工程例子，它说明了
+\textbf{某些约束可以是次要的、不影响主要结果}：
+
+《Resource smoothing》定义与特性（PMBOK 等管理资料）
+
+根据 PMI 项目管理指南的定义：
+
+\begin{quote}
+Resource smoothing是使用可用浮动资源（free and total
+float）进行资源调配，\emph{但不会影响关键路径（关键目标）}\\
+也就是说它不会改变项目的最早完成时间；它只是利用已有自由度把资源需求``平滑''起来。
+\end{quote}
+
+\textbf{原文部分摘录（关键理解点）}：
+
+\begin{quote}
+\emph{``Resource smoothing ... uses free and total float without
+affecting any of the critical paths... This means that no activity can
+be delayed by more than its total float... but finish date remains
+unchanged.''}
+\end{quote}
+
+这说明：
+
+\begin{itemize}
+\item
+  平滑性约束不改变主约束（项目完成时间、误差上限等）
+\item
+  它只是在主约束可行域内部调整（例如降低波动、平衡负载）
+\end{itemize}
+
+\textbf{与我们模型的类比}：
+
+\begin{itemize}
+\item
+  项目关键期限（类似于误差或每日总工作量）是最强约束
+\item
+  资源（平滑性/平稳性）则是次要约束，如果主约束已经很紧，它最终可能自然满足，无需额外限制
+\end{itemize}
+
+这是现实中``弱约束对最优方案无影响''的\textbf{经典工程例证}。
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subparagraph{3）信号处理领域的误差评估实际是平均类指标}\label{3uxff09ux4fe1ux53f7ux5904ux7406ux9886ux57dfux7684ux8befux5deeux8bc4ux4f30ux5b9eux9645ux662fux5e73ux5747ux7c7bux6307ux6807}
+
+在信号处理与噪声分析领域的误差评估中，\textbf{平均误差/平均性能指标}是非常普遍的，尤其在批量数据处理或统计估计任务中。参考文献包括：
+
+Signal Averaging（经典信号处理文献）
+
+\begin{quote}
+在信号处理中，\emph{Signal averaging}
+技术应用于重复测量来提高信噪比（SNR），其基础就是``将多次测量结果平均化\textbf{能够显著增加对噪声的抑制效果}''。\\
+这表明在统计处理任务中，\textbf{平均误差/平均性能指标在工程中广泛被用作评估标准}。
+\end{quote}
+
+\textbf{原文具体内容片段}：
+
+\begin{quote}
+\emph{``Signal averaging... increases the signal-to-noise ratio, ideally
+in proportion to the square root of the number of repetitions.''}
+\end{quote}
+
+这说明：
+
+\begin{itemize}
+\item
+  在噪声信号分析类任务中，衡量误差通常用\textbf{平均性质指标}（如平均噪声、SNR
+  平均、MSE等）
+\item
+  不是要求``每个时间点都必须满足精度测量''，而是整体/平均性能
+\end{itemize}
+
+这\textbf{与瞬时误差约束相比}反映了统计信号分析领域本身对误差指标的工程选择。
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subparagraph{4）在统计误差衡量中，更强调平均指标（如 MSE 和
+MAE）}\label{4uxff09ux5728ux7edfux8ba1ux8befux5deeux8861ux91cfux4e2dux66f4ux5f3aux8c03ux5e73ux5747ux6307ux6807ux5982-mse-ux548c-maeuxff09}
+
+在统计学和信号估计中，常见误差指标都是\textbf{平均型的}：
+
+均方误差（MSE）的定义
+
+\begin{quote}
+\emph{平均平方误差（Mean-Square Error,
+MSE）是衡量预测/估计值与真实值间差异的标准方法。在信号估计中，MSE
+是非常核心的性能指标。}
+\end{quote}
+
+\textbf{原文摘录片段}：
+
+\begin{quote}
+\emph{``MSE is defined as the expected value of squared difference
+between estimator and true value\ldots{} MSE(T) = E{[}(T--θ)²{]}''}
+\end{quote}
+
+类似的还有：
+
+平均绝对误差（MAE）定义
+
+\begin{quote}
+\emph{平均绝对误差描述了预测与真实值绝对差异的平均值，是时间序列分析与预测中常用的误差指标。}
+\end{quote}
+
+\textbf{原文摘录片段}：
+
+\begin{quote}
+\emph{``MAE = (1/n) ∑ \textbar error\_i\textbar, describing the average
+of absolute differences.''}
+\end{quote}
+
+这些是\textbf{实际工程和统计研究中针对误差衡量的通用指标定义}，说明研究和工程实现中更倾向于\textbf{平均/总体误差度量}，不是实时瞬时误差约束。
+
+\subsection{13.
+图像结果说明}\label{13-ux56feux50cfux7ed3ux679cux8bf4ux660e}
+
+以下给出两张问题四正文图的预留位置和解释文字。本文档暂不直接插入图片，后续排版时可按占位说明放入对应图像。
+
+\subsubsection{图1：约束强弱对比图}\label{ux56fe1ux7ea6ux675fux5f3aux5f31ux5bf9ux6bd4ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260521093221115.png}}
+
+图 4-1
+用于解释为什么问题四新增平滑约束没有改变最优解。该图由两部分组成：左侧为集合关系示意，右侧为约束使用率对比。
+
+左侧集合示意图表达的是问题四可行域与问题三可行域之间的关系。设问题三可行域为
+\$\textbackslash Omega\_3\$，GPU 负载变化率约束集合为
+\$\textbackslash mathcal S\_G\$，传输速率变化率约束集合为
+\$\textbackslash mathcal S\_R\$，则问题四可行域为：
+
+\[\Omega_4=\Omega_3\cap \mathcal S_G\cap \mathcal S_R\]
+
+图中外层浅蓝色区域表示新增平滑约束允许的范围，内层深红色区域表示问题三主约束已经限定出的可行区域。由于内层区域位于外层区域内部，说明问题三可行域中的最优点没有被新增平滑约束排除。图中标注的最优点满足：
+
+\[x_3^\*=x_4^\*\]
+
+因此，取交集后问题四仍保留问题三的最优调度方案：
+
+\[f_4^\*=f_3^\*\]
+
+图像右侧用约束使用率对比主约束和平滑约束：
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+约束 & 类型 & 使用率 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+加权误差 & 主约束 & 100.0\% \\
+冷却变化 & 主约束 & 100.0\% \\
+GPU负载变化 & 平滑约束 & 20.8\% \\
+传输速率变化 & 平滑约束 & 0.0\% \\
+\end{longtable}
+
+从柱状图可以看出，加权平均误差约束和冷却功率变化约束均达到约束边界，属于真正决定调度形态的主约束；而
+GPU 负载变化率约束只使用了约 \$20.8\textbackslash\%\$
+的允许范围，传输速率变化率约束使用率为
+\$0\$。这说明问题四新增的两个平滑约束相对较松，没有成为活跃约束。因此，新增平滑约束不会改变问题三最优解，只起到验证调度稳定性的作用。
+
+\subsubsection{图2：问题三与问题四核心指标对比图}\label{ux56fe2ux95eeux9898ux4e09ux4e0eux95eeux9898ux56dbux6838ux5fc3ux6307ux6807ux5bf9ux6bd4ux56fe}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={}]{C:/Users/Nuwanda/AppData/Roaming/Typora/typora-user-images/image-20260521093236428.png}}
+
+图 4-2
+比较问题三和问题四的日电费、系统能耗、总处理量和加权平均误差。为了避免把元、kWh、任务量和百分比直接放到同一个原始坐标轴中，图中采用归一化口径：以问题三各指标为
+\$100\textbackslash\%\$ 基准，绘制问题四对应指标的相对值。
+
+设问题三某指标为 \$I\_3\$，问题四对应指标为
+\$I\_4\$，则图中柱状图高度为：
+
+\[\eta=\frac{I_4}{I_3}\times 100\%\]
+
+实际计算结果显示，问题四在四个核心指标上均与问题三保持一致：
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+指标 & 问题三 & 问题四 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+日电费 & 158.6374 元 & 158.6374 元 \\
+系统能耗 & 157.1937 kWh & 157.1937 kWh \\
+总处理量 & 1.2690 & 1.2690 \\
+加权平均误差 & 5.0000\% & 5.0000\% \\
+\end{longtable}
+
+因此，图 4-2
+的主要作用是从结果层面验证问题四新增约束没有改变经济性和任务完成效果。结合图
+4-1
+可以得到完整解释：问题三推荐方案已经满足新增平滑约束，且新增约束没有排除原最优点，所以问题四的目标函数值和核心运行指标均保持不变。
+
+\subsubsection{不再作为正文主图的图像}\label{ux4e0dux518dux4f5cux4e3aux6b63ux6587ux4e3bux56feux7684ux56feux50cf}
+
+以下图像不再作为问题四正文主图使用：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{outputs/question4/schedule\_profile.png}
+\NormalTok{outputs/question4/change\_rate\_check.png}
+\NormalTok{outputs/question4/constraint\_margin\_summary.png}
+\end{Highlighting}
+\end{Shaded}
+
+原因是这些图只能分别说明调度曲线、逐小时变化或平滑约束裕度，不能直接表达``平滑性约束弱于主约束，所以没有改变最优解''。新的约束强弱对比图更适合汇报和论文呈现。
+
+\subsection{14. 问题四结论}\label{14-ux95eeux9898ux56dbux7ed3ux8bba}
+
+问题四在问题三基础上加入 GPU
+负载变化率和传输速率变化率约束后，得到的最优日电费仍为：
+
+\[158.6374\text{ 元}\]
+
+该结果与问题三一致。原因是问题三推荐方案已经满足问题四新增的设备平滑约束，问题四可行域虽然是问题三可行域与新增约束集合的交集，但这个交集仍然保留了问题三最优解。
+
+从约束绑定情况看，传输速率始终为 1200 Mbps，因此传输速率变化率为 0；GPU
+负载最大相邻小时变化仅为 1.6667\%，远小于 8\% 上限；冷却功率变化率达到
+0.2 kW，是实际起作用的平滑约束。
+
+因此，问题四的主要结论是：在加入电池储能和冷却惯性后，系统调度已经具备较好的工程平滑性，进一步加入
+GPU
+负载和传输速率变化率限制不会增加运行费用，但能从设备稳定性角度验证该调度方案适合长期运行。
+
+\end{document}
